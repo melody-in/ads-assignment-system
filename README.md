@@ -1,75 +1,35 @@
-# ADS Assignment Document System
+# ADS — Assignment Document System
 
-A web-based tool that generates personalized academic assignments from a DOCX template. Features a stunning 3D space background with iOS-style design.
+A web app that generates personalized stats assignments. Enter your **Name**, **PID**, and **Program** — the system replaces the "Submitted By" details on the front page and generates a pixel-perfect PDF for download.
 
-## ✨ Features
+## How It Works
 
-- **3D Space Background** — Animated stars, floating crystals, and shooting stars using Three.js
-- **6 Color Themes** — Default, Sunset, Emerald, Midnight, Rose, Ocean
-- **iOS Apple Design** — SF Pro font stack, glassmorphism cards
-- **Document Customization** — Enter your Name, PID, and Student Code
-- **Preview** — See the generated document in your browser
-- **Download** — Export as DOCX (preserves original formatting) or PDF
+1. Upload your DOCX template to the `documents/` folder
+2. Configure the placeholder text in `documents/settings.json`
+3. Users visit the site, enter their details, and get a customized PDF instantly
 
-## 🚀 Local Setup
+## Tech Stack
 
-```bash
-# 1. Install dependencies
-pip install -r requirements.txt
+- **Backend:** Python / Flask
+- **PDF Conversion:** LibreOffice (headless)
+- **DOCX Processing:** python-docx
+- **Frontend:** HTML + Three.js (3D sound wave background)
+- **Deployment:** Docker → Render
 
-# 2. Start the app
-python app.py
-
-# 3. Open in browser
-open http://localhost:5000
-```
-
-## 📦 Deploy to Render
-
-### Step 1: Push to GitHub
+## Run Locally
 
 ```bash
-# Create a new repo on GitHub, then:
-git remote add origin https://github.com/YOUR_USERNAME/ads-assignment-system.git
-git branch -M main
-git push -u origin main
+docker build -t ads-system .
+docker run -p 5000:5000 ads-system
 ```
 
-### Step 2: Deploy on Render
+Then visit `http://localhost:5000`
 
-1. Go to [render.com](https://render.com) and sign in
-2. Click **"New +"** → **"Web Service"**
-3. Connect your GitHub repository
-4. Configure:
-   - **Name**: `ads-assignment-system`
-   - **Environment**: `Python 3`
-   - **Build Command**: `pip install -r requirements.txt`
-   - **Start Command**: `gunicorn app:app`
-5. Click **"Create Web Service"**
-6. Wait 2-3 minutes for the build & deploy
-7. Your live URL will be: `https://ads-assignment-system.onrender.com`
+## Deploy on Render
 
-### ⚠️ Important
-
-- The `FINAL_SATS_ASS.docx` template file **must be committed to git** (it's the source document)
-- PDF generation uses the server's available fonts (Arial on Windows, DejaVu Sans on Linux)
-- For best PDF results, the DOCX download preserves all original formatting
-
-## 📁 Project Structure
-
-```
-├── app.py                  # Flask backend
-├── templates/
-│   └── index.html          # Frontend with 3D background
-├── FINAL_SATS_ASS.docx     # DOCX template
-├── requirements.txt        # Python dependencies
-├── Procfile                # Render deployment config
-├── .gitignore
-└── README.md
-```
-
-## 🛠️ Tech Stack
-
-- **Backend**: Python, Flask, python-docx, fpdf2
-- **Frontend**: Three.js, HTML5, CSS3 (iOS design)
-- **Deployment**: Render, Gunicorn
+1. Push this repo to GitHub
+2. Go to [Render Dashboard](https://dashboard.render.com)
+3. Click **New → Web Service**
+4. Connect this GitHub repo
+5. Set **Environment** to **Docker**
+6. Deploy — done!
