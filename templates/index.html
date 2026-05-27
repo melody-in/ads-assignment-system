@@ -69,28 +69,14 @@
         filter: drop-shadow(0 0 30px rgba(129,140,248,0.25));
     }
 
-    /* Typewriter tagline */
-    .tagline {
+    /* Tagline canvas container */
+    .tag-container {
         margin-top: 0.9rem;
-        font-size: 0.85rem;
-        font-weight: 400;
-        letter-spacing: 0.12em;
-        color: rgba(255,255,255,0.4);
-        font-style: italic;
-        min-height: 1.2em;
+        height: 1.5rem;
+        display: flex;
+        justify-content: center;
+        position: relative;
     }
-    
-    .tagline .cursor {
-        display: inline-block;
-        width: 1px;
-        height: 0.85em;
-        background: rgba(129,140,248,0.6);
-        margin-left: 2px;
-        vertical-align: middle;
-        animation: blink 0.8s step-end infinite;
-    }
-    
-    @keyframes blink { 50% { opacity: 0; } }
 
     /* ── GLASS CARD ─────────────────────────────────────────────── */
     .card {
@@ -359,11 +345,13 @@
     <div class="header">
         <div style="display: flex; align-items: center; justify-content: center;">
             <div class="logo">ADS</div>
-            <div style="position: relative; width: 150px; height: 50px; margin-left: 0.5rem;">
-                <canvas id="sigCanvas" width="500" height="300" style="position: absolute; top: -50px; left: -50px; width: 250px; height: 150px; pointer-events: none;"></canvas>
+            <div style="position: relative; width: 140px; height: 50px; margin-left: 0.5rem;">
+                <canvas id="sigCanvas" width="400" height="160" style="position: absolute; top: -15px; left: -30px; width: 200px; height: 80px; pointer-events: none;"></canvas>
             </div>
         </div>
-        <div class="tagline" id="tagline"><span class="cursor"></span></div>
+        <div class="tag-container">
+            <canvas id="tagCanvas" width="600" height="80" style="position: absolute; top: -10px; width: 300px; height: 40px; pointer-events: none;"></canvas>
+        </div>
     </div>
 
     <!-- Form Card -->
@@ -725,150 +713,176 @@
 })();
 
 // ══════════════════════════════════════════════════════════════════════
-// SIGNATURE PARTICLE EFFECT & TYPEWRITER TAGLINE
+// HEXAGON BLOCK PARTICLE ENGINE (Signature & Tagline)
 // ══════════════════════════════════════════════════════════════════════
 const sigCanvas = document.getElementById('sigCanvas');
 const sCtx = sigCanvas.getContext('2d', { willReadFrequently: true });
-const cWidth = 250;
-const cHeight = 150;
-sCtx.scale(2, 2);
+const tagCanvas = document.getElementById('tagCanvas');
+const tCtx = tagCanvas.getContext('2d', { willReadFrequently: true });
 
-let sParticles = [];
-let sigState = 'FORMED';
+function createHexGradient(ctx, w) {
+    const grad = ctx.createLinearGradient(0, 0, w, 0);
+    grad.addColorStop(0, "#7ac5b4"); // Opal green
+    grad.addColorStop(0.5, "#4169e1"); // Royal blue
+    grad.addColorStop(1, "#6b3b5b"); // Cadbury maroonish blue
+    return grad;
+}
 
-function initSigParticles() {
-    sCtx.clearRect(0, 0, cWidth, cHeight);
-    sCtx.font = "600 24px 'Dancing Script'";
-    sCtx.textAlign = "left";
-    sCtx.textBaseline = "middle";
+function extractHexBlocks(canvas, ctx, text, font, w, h, textX, textY, hexRadius) {
+    ctx.clearRect(0, 0, w, h);
+    ctx.font = font;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = createHexGradient(ctx, w);
+    ctx.fillText(text, textX, textY);
     
-    const gradient = sCtx.createLinearGradient(50, 0, 200, 0);
-    gradient.addColorStop(0, "rgba(129,140,248,1)");
-    gradient.addColorStop(0.5, "rgba(196,181,253,1)");
-    gradient.addColorStop(1, "rgba(99,102,241,1)");
-    sCtx.fillStyle = gradient;
-    
-    // Draw text in the middle of our extended canvas
-    sCtx.fillText("by ViR@hitvin", 50, 75);
-    
-    const imgData = sCtx.getImageData(0, 0, sigCanvas.width, sigCanvas.height);
+    const imgData = ctx.getImageData(0, 0, w, h);
     const data = imgData.data;
-    sParticles = [];
+    const particles = [];
     
-    for(let y = 0; y < sigCanvas.height; y += 4) {
-        for(let x = 0; x < sigCanvas.width; x += 4) {
-            const i = (y * sigCanvas.width + x) * 4;
-            if(data[i+3] > 40) { 
-                sParticles.push({
-                    ox: x/2, 
-                    oy: y/2,
-                    x: x/2,
-                    y: y/2,
-                    vx: 0,
-                    vy: 0,
-                    size: Math.random() * 1.5 + 0.5,
-                    color: `rgba(${data[i]}, ${data[i+1]}, ${data[i+2]}, ${data[i+3]/255})`
+    const hexHeight = Math.sqrt(3) * hexRadius;
+    const hDist = 1.5 * hexRadius;
+    const vDist = hexHeight;
+    
+    for (let row = 0; row * vDist < h; row++) {
+        for (let col = 0; col * hDist < w; col++) {
+            let x = col * hDist;
+            let y = row * vDist;
+            if (col % 2 === 1) y += vDist / 2;
+            
+            let px = Math.floor(x);
+            let py = Math.floor(y);
+            if (px < 0 || px >= w || py < 0 || py >= h) continue;
+            
+            let i = (py * w + px) * 4;
+            if (data[i+3] > 60) {
+                particles.push({
+                    ox: x, oy: y,
+                    x: x, y: y,
+                    vx: 0, vy: 0,
+                    color: `rgba(${data[i]}, ${data[i+1]}, ${data[i+2]}, ${data[i+3]/255})`,
+                    r: hexRadius - 0.4
                 });
             }
         }
     }
+    ctx.clearRect(0, 0, w, h);
+    return particles;
 }
 
-function drawParticleShape(ctx, x, y, size) {
-    if (size > 1.2) {
-        ctx.beginPath();
-        for (let j = 0; j < 6; j++) {
-            const angle = j * Math.PI / 3;
-            ctx.lineTo(x + size * Math.cos(angle), y + size * Math.sin(angle));
-        }
-        ctx.closePath();
-        ctx.fill();
-    } else {
-        ctx.fillRect(x, y, size, size);
+function drawHexagon(ctx, x, y, r) {
+    ctx.beginPath();
+    for (let i = 0; i < 6; i++) {
+        const angle = i * Math.PI / 3;
+        ctx.lineTo(x + r * Math.cos(angle), y + r * Math.sin(angle));
     }
+    ctx.closePath();
+    ctx.fill();
 }
 
-function updateSigParticles() {
-    sCtx.clearRect(0, 0, cWidth, cHeight);
+let sigParticles = [];
+let tagParticles = [];
+let animState = 'TYPING';
+let stateTimer = 0;
+let tagRevealX = 0;
+
+function initParticles() {
+    sigParticles = extractHexBlocks(sigCanvas, sCtx, "by ViR@hitvin", "600 52px 'Dancing Script'", 400, 160, 200, 80, 3.5);
+    tagParticles = extractHexBlocks(tagCanvas, tCtx, "Together, no one walks alone", "italic 400 32px 'Inter'", 600, 80, 300, 40, 2.8);
+}
+
+function burstParticles(particles) {
+    particles.forEach(p => {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 12 + 4;
+        p.vx = Math.cos(angle) * speed;
+        p.vy = Math.sin(angle) * speed;
+    });
+}
+
+function updateFrame() {
+    sCtx.clearRect(0, 0, 400, 160);
+    tCtx.clearRect(0, 0, 600, 80);
+    
+    if (animState === 'TYPING') {
+        tagRevealX += 5;
+        if (tagRevealX > 650) {
+            animState = 'FORMED';
+            stateTimer = 90; // hold before burst
+        }
+    } else if (animState === 'FORMED') {
+        stateTimer--;
+        if (stateTimer <= 0) {
+            animState = 'BURSTING';
+            burstParticles(sigParticles);
+            burstParticles(tagParticles);
+            stateTimer = 100; // duration of floating dispersed
+        }
+    } else if (animState === 'BURSTING') {
+        stateTimer--;
+        if (stateTimer <= 0) {
+            animState = 'REFORMING';
+        }
+    }
     
     let allReformed = true;
-    for(let i=0; i<sParticles.length; i++) {
-        let p = sParticles[i];
-        
-        if (sigState === 'BURSTING') {
-            p.x += p.vx;
-            p.y += p.vy;
-            p.vx *= 0.92;
-            p.vy *= 0.92;
-            // Float slowly in space
-            p.x += Math.sin(Date.now()*0.001 + p.ox)*0.4;
-            p.y += Math.cos(Date.now()*0.001 + p.oy)*0.4;
-        } else if (sigState === 'REFORMING') {
-            const dx = p.ox - p.x;
-            const dy = p.oy - p.y;
-            p.x += dx * 0.08;
-            p.y += dy * 0.08;
-            if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
-                allReformed = false;
+
+    function processParticles(ctx, particles, isTagline) {
+        for (let i = 0; i < particles.length; i++) {
+            let p = particles[i];
+            
+            if (animState === 'TYPING') {
+                if (isTagline && p.ox > tagRevealX) continue;
+            } else if (animState === 'HIDDEN') {
+                if (isTagline) continue;
             }
+            
+            if (animState === 'BURSTING') {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vx *= 0.94;
+                p.vy *= 0.94;
+                p.x += Math.sin(Date.now()*0.002 + p.ox)*0.5;
+                p.y += Math.cos(Date.now()*0.002 + p.oy)*0.5;
+            } else if (animState === 'REFORMING') {
+                const dx = p.ox - p.x;
+                const dy = p.oy - p.y;
+                p.x += dx * 0.08;
+                p.y += dy * 0.08;
+                if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
+                    allReformed = false;
+                }
+            } else {
+                p.x = p.ox;
+                p.y = p.oy;
+            }
+            
+            ctx.fillStyle = p.color;
+            drawHexagon(ctx, p.x, p.y, p.r);
         }
-        
-        sCtx.fillStyle = p.color;
-        drawParticleShape(sCtx, p.x, p.y, p.size);
     }
+
+    processParticles(sCtx, sigParticles, false);
+    processParticles(tCtx, tagParticles, true);
     
-    if (sigState === 'REFORMING' && allReformed) {
-        sigState = 'FORMED';
-        sParticles.forEach(p => { p.x = p.ox; p.y = p.oy; });
+    if (animState === 'REFORMING' && allReformed) {
+        animState = 'HIDDEN';
+        stateTimer = 20; 
+        tagRevealX = 0;
+    } else if (animState === 'HIDDEN') {
+        stateTimer--;
+        if (stateTimer <= 0) {
+            animState = 'TYPING';
+        }
     }
-    
-    requestAnimationFrame(updateSigParticles);
+
+    requestAnimationFrame(updateFrame);
 }
 
 document.fonts.ready.then(() => {
-    initSigParticles();
-    requestAnimationFrame(updateSigParticles);
+    initParticles();
+    requestAnimationFrame(updateFrame);
 });
-
-(function typewriter() {
-    const el   = document.getElementById('tagline');
-    const text = 'Together, no one walks alone';
-    let   i    = 0;
-    let   dir  = 1;  
-    let   wait = 0;
-
-    function tick() {
-        if (wait > 0) { wait--; setTimeout(tick, 80); return; }
-
-        if (dir === 1) {
-            i++;
-            el.innerHTML = text.slice(0, i) + '<span class="cursor"></span>';
-            if (i === text.length) { 
-                wait = 35; // wait at the end
-                dir = -1; 
-                sigState = 'BURSTING'; 
-                sParticles.forEach(p => {
-                    const angle = Math.random() * Math.PI * 2;
-                    const speed = Math.random() * 6 + 2;
-                    p.vx = Math.cos(angle) * speed;
-                    p.vy = Math.sin(angle) * speed;
-                });
-            }
-            setTimeout(tick, 60 + Math.random() * 40);
-        } else {
-            i--;
-            el.innerHTML = text.slice(0, i) + '<span class="cursor"></span>';
-            if (i === 0) { 
-                wait = 15; // wait at the start
-                dir = 1; 
-                sigState = 'REFORMING'; 
-            }
-            setTimeout(tick, 30);
-        }
-    }
-
-    setTimeout(tick, 600);
-})();
 
 // ══════════════════════════════════════════════════════════════════════
 // LOCAL STORAGE
