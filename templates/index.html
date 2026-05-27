@@ -69,28 +69,39 @@
         filter: drop-shadow(0 0 30px rgba(129,140,248,0.25));
     }
 
-    /* Typewriter tagline */
+    .sig-header {
+        font-family: 'Dancing Script', cursive;
+        font-size: clamp(1.2rem, 3vw, 2rem);
+        font-weight: 600;
+        background: linear-gradient(135deg, rgba(129,140,248,0.8), rgba(196,181,253,0.8), rgba(99,102,241,0.8));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-left: 0.5rem;
+        animation: blinkSig 1.5s ease-in-out infinite;
+    }
+
+    @keyframes blinkSig {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.2; }
+    }
+
+    /* Fading tagline */
     .tagline {
         margin-top: 0.9rem;
-        font-size: 0.82rem;
+        font-size: 0.85rem;
         font-weight: 400;
         letter-spacing: 0.12em;
-        color: rgba(255,255,255,0.35);
+        color: rgba(255,255,255,0.4);
         font-style: italic;
         min-height: 1.2em;
+        animation: fadeTagline 4s ease-in-out infinite;
     }
 
-    .tagline .cursor {
-        display: inline-block;
-        width: 1px;
-        height: 0.85em;
-        background: rgba(129,140,248,0.6);
-        margin-left: 1px;
-        vertical-align: middle;
-        animation: blink 0.8s step-end infinite;
+    @keyframes fadeTagline {
+        0%, 100% { opacity: 0; transform: scale(0.98); }
+        50% { opacity: 1; transform: scale(1); }
     }
-
-    @keyframes blink { 50% { opacity: 0; } }
 
     /* ── GLASS CARD ─────────────────────────────────────────────── */
     .card {
@@ -325,26 +336,7 @@
         display: none;
     }
 
-    /* ── SIGNATURE ───────────────────────────────────────────────── */
-    .sig {
-        margin-top: 3rem;
-        text-align: center;
-        animation: fadeUp 1s ease-out 0.4s both;
-    }
-
-    .sig-text {
-        font-family: 'Dancing Script', cursive;
-        font-size: 1.25rem;
-        font-weight: 600;
-        background: linear-gradient(135deg, rgba(129,140,248,0.5), rgba(196,181,253,0.4), rgba(99,102,241,0.5));
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        letter-spacing: 0.03em;
-        opacity: 0.65;
-        transition: opacity 0.3s;
-    }
-    .sig-text:hover { opacity: 1; }
+    /* Removed signature css since it moved to header */
 
     /* ── ANIMATIONS ─────────────────────────────────────────────── */
     @keyframes fadeDown {
@@ -376,8 +368,11 @@
 
     <!-- Header -->
     <div class="header">
-        <div class="logo">ADS</div>
-        <div class="tagline" id="tagline"><span class="cursor"></span></div>
+        <div style="display: flex; align-items: baseline; justify-content: center;">
+            <div class="logo">ADS</div>
+            <div class="sig-header">by ViR@hitvin</div>
+        </div>
+        <div class="tagline">Together, no one walks alone</div>
     </div>
 
     <!-- Form Card -->
@@ -440,10 +435,7 @@
         </div>
     </div>
 
-    <!-- Signature -->
-    <div class="sig">
-        <div class="sig-text">ViR@hitvin</div>
-    </div>
+    <!-- Signature Removed from bottom -->
 
 </div>
 
@@ -741,34 +733,7 @@
     });
 })();
 
-// ══════════════════════════════════════════════════════════════════════
-// TYPEWRITER TAGLINE — loops forever
-// ══════════════════════════════════════════════════════════════════════
-(function typewriter() {
-    const el   = document.getElementById('tagline');
-    const text = 'Together, no one walks alone';
-    let   i    = 0;
-    let   dir  = 1;  // 1 = typing, -1 = deleting
-    let   wait = 0;
-
-    function tick() {
-        if (wait > 0) { wait--; setTimeout(tick, 80); return; }
-
-        if (dir === 1) {
-            i++;
-            el.innerHTML = text.slice(0, i) + '<span class="cursor"></span>';
-            if (i === text.length) { wait = 28; dir = -1; }
-            setTimeout(tick, 65 + Math.random() * 40);
-        } else {
-            i--;
-            el.innerHTML = text.slice(0, i) + '<span class="cursor"></span>';
-            if (i === 0) { wait = 14; dir = 1; }
-            setTimeout(tick, 38);
-        }
-    }
-
-    setTimeout(tick, 600);
-})();
+// (Tagline fade animation handled in CSS)
 
 // ══════════════════════════════════════════════════════════════════════
 // LOCAL STORAGE
