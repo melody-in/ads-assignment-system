@@ -106,6 +106,24 @@
     
     @keyframes blink { 50% { opacity: 0; } }
 
+    /* Premium Evaporation Effect */
+    .text-wrapper {
+        transition: opacity 1.8s cubic-bezier(0.4, 0, 0.2, 1), 
+                    filter 1.8s cubic-bezier(0.4, 0, 0.2, 1), 
+                    transform 1.8s cubic-bezier(0.4, 0, 0.2, 1);
+        will-change: opacity, filter, transform;
+    }
+
+    .text-wrapper.evaporate {
+        opacity: 0;
+        filter: blur(12px);
+        transform: scale(1.08) translateY(-4px); /* Dissolve and expand into the atmosphere */
+    }
+
+    .no-transition {
+        transition: none !important;
+    }
+
     /* ── GLASS CARD ─────────────────────────────────────────────── */
     .card {
         background: var(--glass);
@@ -369,25 +387,15 @@
 
 <div class="page">
 
-    <!-- SVG Heatwave Filter -->
-    <svg style="display: none;">
-      <filter id="heatwave" x="-100%" y="-100%" width="300%" height="300%">
-        <feTurbulence type="fractalNoise" baseFrequency="0.02 0.1" numOctaves="3" result="noise">
-          <animate attributeName="baseFrequency" values="0.02 0.1; 0.04 0.2; 0.02 0.1" dur="4s" repeatCount="indefinite" />
-        </feTurbulence>
-        <feDisplacementMap id="displacement" in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G" />
-      </filter>
-    </svg>
-
     <!-- Header -->
     <div class="header">
         <div style="display: flex; align-items: baseline; justify-content: center;">
             <div class="logo">ADS</div>
-            <div style="filter: url(#heatwave);">
+            <div class="text-wrapper" id="sigWrapper">
                 <div class="sig-header">by ViR@hitvin</div>
             </div>
         </div>
-        <div style="filter: url(#heatwave); display: flex; justify-content: center;">
+        <div class="text-wrapper" id="tagWrapper" style="display: flex; justify-content: center;">
             <div class="tagline">
                 <span id="tagText"></span><span class="cursor"></span>
             </div>
@@ -753,36 +761,15 @@
 })();
 
 // ══════════════════════════════════════════════════════════════════════
-// HEAT WAVE DISPLACEMENT ENGINE & TYPEWRITER TAGLINE
+// ATMOSPHERIC EVAPORATION ENGINE & TYPEWRITER TAGLINE
 // ══════════════════════════════════════════════════════════════════════
-const displacement = document.getElementById('displacement');
+const sigWrapper = document.getElementById('sigWrapper');
+const tagWrapper = document.getElementById('tagWrapper');
 const tagTextEl = document.getElementById('tagText');
 const fullTagline = "Together, no one walks alone";
 
 let loopState = 'TYPING';
 let typeIndex = 0;
-
-function animateDistortion(startDist, endDist, duration, callback) {
-    const startTime = performance.now();
-    
-    function step(currentTime) {
-        const elapsed = currentTime - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        
-        // Easing out sine
-        const ease = Math.sin((progress * Math.PI) / 2);
-        const currDist = startDist + (endDist - startDist) * ease;
-        
-        displacement.setAttribute('scale', currDist);
-        
-        if (progress < 1) {
-            requestAnimationFrame(step);
-        } else {
-            if (callback) callback();
-        }
-    }
-    requestAnimationFrame(step);
-}
 
 function animateLoop() {
     if (loopState === 'TYPING') {
@@ -797,24 +784,38 @@ function animateLoop() {
         }
     } else if (loopState === 'FORMED') {
         loopState = 'BURSTING';
-        // Melt away with heavy distortion
-        animateDistortion(0, 150, 1000, () => {
+        // Add evaporate class to merge into the background
+        sigWrapper.classList.add('evaporate');
+        tagWrapper.classList.add('evaporate');
+        
+        setTimeout(() => {
             loopState = 'DISPERSED';
-            setTimeout(animateLoop, 800); // Float in distortion
-        });
+            setTimeout(animateLoop, 800); // Float in atmosphere
+        }, 1800); // Wait for CSS transition to complete
     } else if (loopState === 'DISPERSED') {
         loopState = 'REFORMING';
-        // Reform back to perfect legibility
-        animateDistortion(150, 0, 1000, () => {
+        // Remove evaporate class to reform perfectly
+        sigWrapper.classList.remove('evaporate');
+        tagWrapper.classList.remove('evaporate');
+        
+        setTimeout(() => {
             loopState = 'HIDDEN';
             setTimeout(animateLoop, 200); // Pause briefly once formed
-        });
+        }, 1800); // Wait for CSS transition to complete
     } else if (loopState === 'HIDDEN') {
-        // Tagline vanishes, signature stays visible
+        // Tagline vanishes instantly to restart typing
+        tagWrapper.classList.add('no-transition');
         tagTextEl.innerText = "";
         typeIndex = 0;
-        loopState = 'TYPING';
-        setTimeout(animateLoop, 400); // Wait before starting typing again
+        
+        // Wait a frame to remove the no-transition so future fades work
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                tagWrapper.classList.remove('no-transition');
+                loopState = 'TYPING';
+                setTimeout(animateLoop, 400); // Wait before starting typing again
+            });
+        });
     }
 }
 
