@@ -4,851 +4,876 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ADS — Assignment Document System</title>
-    <meta name="description" content="Generate your personalized stats assignment with one click. Just enter your details.">
+    <meta name="description" content="ADS — Generate your personalized assignment with one click.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Inter:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
     <style>
-        /* ═══════════════════════════════════════════════════════════════
-           RESET & BASE
-           ═══════════════════════════════════════════════════════════════ */
-        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-        body {
-            font-family: 'Inter', -apple-system, 'Helvetica Neue', Arial, sans-serif;
-            color: #ffffff;
-            overflow-x: hidden;
-            min-height: 100vh;
-            background: #050510;
-            -webkit-font-smoothing: antialiased;
-            text-rendering: optimizeLegibility;
-        }
+    :root {
+        --accent: #818cf8;
+        --accent2: #c4b5fd;
+        --bg: #04040f;
+        --glass: rgba(255,255,255,0.035);
+        --border: rgba(255,255,255,0.07);
+    }
 
-        /* ═══════════════════════════════════════════════════════════════
-           THREE.JS CANVAS
-           ═══════════════════════════════════════════════════════════════ */
-        #waveCanvas {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            z-index: 0;
-        }
+    body {
+        font-family: 'Inter', sans-serif;
+        color: #fff;
+        background: var(--bg);
+        overflow-x: hidden;
+        min-height: 100vh;
+        -webkit-font-smoothing: antialiased;
+    }
 
-        /* ═══════════════════════════════════════════════════════════════
-           CONTENT LAYOUT
-           ═══════════════════════════════════════════════════════════════ */
-        .content-wrapper {
-            position: relative;
-            z-index: 2;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 3rem 1.5rem 4rem;
-        }
+    /* ── CANVAS ─────────────────────────────────────────────────── */
+    #waveCanvas {
+        position: fixed;
+        inset: 0;
+        width: 100%; height: 100%;
+        z-index: 0;
+    }
 
-        /* ═══════════════════════════════════════════════════════════════
-           HEADER — Handwritten stylus title
-           ═══════════════════════════════════════════════════════════════ */
-        .header {
-            text-align: center;
-            margin-bottom: 2.5rem;
-            animation: fadeInDown 1s ease-out;
-        }
+    /* ── LAYOUT ─────────────────────────────────────────────────── */
+    .page {
+        position: relative;
+        z-index: 2;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 3rem 1.5rem 5rem;
+    }
 
-        .header h1 {
-            font-family: 'Dancing Script', cursive;
-            font-size: clamp(2.2rem, 6vw, 4.2rem);
-            font-weight: 700;
-            letter-spacing: 0.02em;
-            line-height: 1.2;
-            background: linear-gradient(135deg, #c4b5fd, #818cf8, #a78bfa, #e0e7ff);
-            background-size: 200% 200%;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: shimmerTitle 6s ease infinite;
-            text-shadow: none;
-        }
+    /* ── HEADER ─────────────────────────────────────────────────── */
+    .header {
+        text-align: center;
+        margin-bottom: 2.8rem;
+        animation: fadeDown 0.9s ease-out;
+    }
 
-        @keyframes shimmerTitle {
-            0%   { background-position: 0% 50%; }
-            50%  { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
+    .logo {
+        font-family: 'Dancing Script', cursive;
+        font-size: clamp(3.2rem, 9vw, 6rem);
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        line-height: 1;
+        background: linear-gradient(135deg, #e0e7ff 0%, #c4b5fd 40%, #818cf8 70%, #6366f1 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        filter: drop-shadow(0 0 30px rgba(129,140,248,0.25));
+    }
 
-        .header .subtitle {
-            font-family: 'Inter', sans-serif;
-            font-size: 0.85rem;
-            font-weight: 400;
-            color: rgba(255,255,255,0.35);
-            letter-spacing: 0.15em;
-            text-transform: uppercase;
-            margin-top: 0.6rem;
-        }
+    /* Typewriter tagline */
+    .tagline {
+        margin-top: 0.9rem;
+        font-size: 0.82rem;
+        font-weight: 400;
+        letter-spacing: 0.12em;
+        color: rgba(255,255,255,0.35);
+        font-style: italic;
+        min-height: 1.2em;
+    }
 
-        /* ═══════════════════════════════════════════════════════════════
-           GLASS CARD
-           ═══════════════════════════════════════════════════════════════ */
-        .glass-card {
-            background: rgba(255,255,255,0.04);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.07);
-            border-radius: 20px;
-            padding: 2.25rem;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06);
-            width: 100%;
-            max-width: 480px;
-            transition: border-color 0.4s, box-shadow 0.4s, transform 0.4s;
-        }
+    .tagline .cursor {
+        display: inline-block;
+        width: 1px;
+        height: 0.85em;
+        background: rgba(129,140,248,0.6);
+        margin-left: 1px;
+        vertical-align: middle;
+        animation: blink 0.8s step-end infinite;
+    }
 
-        .glass-card:hover {
-            border-color: rgba(167,139,250,0.2);
-            box-shadow: 0 12px 48px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
-            transform: translateY(-2px);
-        }
+    @keyframes blink { 50% { opacity: 0; } }
 
-        /* ═══════════════════════════════════════════════════════════════
-           FORM
-           ═══════════════════════════════════════════════════════════════ */
-        .form-group { margin-bottom: 1.4rem; }
+    /* ── GLASS CARD ─────────────────────────────────────────────── */
+    .card {
+        background: var(--glass);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 2rem;
+        width: 100%;
+        max-width: 440px;
+        box-shadow: 0 8px 40px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.06);
+        transition: border-color 0.4s, transform 0.3s;
+        animation: fadeUp 0.9s ease-out 0.15s both;
+    }
 
-        .form-label {
-            display: block;
-            font-size: 0.7rem;
-            font-weight: 600;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: rgba(255,255,255,0.4);
-            margin-bottom: 0.45rem;
-        }
+    .card:hover {
+        border-color: rgba(129,140,248,0.18);
+        transform: translateY(-2px);
+    }
 
-        .form-input {
-            width: 100%;
-            padding: 0.8rem 1rem;
-            background: rgba(255,255,255,0.05);
-            border: 1.5px solid rgba(255,255,255,0.08);
-            border-radius: 12px;
-            color: #fff;
-            font-family: 'Inter', sans-serif;
-            font-size: 0.95rem;
-            outline: none;
-            transition: all 0.3s ease;
-        }
+    /* ── FORM ───────────────────────────────────────────────────── */
+    .form-group { margin-bottom: 1.3rem; }
 
-        .form-input::placeholder { color: rgba(255,255,255,0.18); }
+    .lbl {
+        display: block;
+        font-size: 0.65rem;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.35);
+        margin-bottom: 0.4rem;
+    }
 
-        .form-input:focus {
-            border-color: rgba(167,139,250,0.5);
-            background: rgba(255,255,255,0.07);
-            box-shadow: 0 0 0 3px rgba(167,139,250,0.1);
-        }
+    .inp {
+        width: 100%;
+        padding: 0.75rem 0.9rem;
+        background: rgba(255,255,255,0.04);
+        border: 1.5px solid rgba(255,255,255,0.07);
+        border-radius: 11px;
+        color: #fff;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.9rem;
+        outline: none;
+        transition: all 0.3s;
+    }
 
-        .form-input.error {
-            border-color: #f87171;
-            box-shadow: 0 0 0 3px rgba(248,113,113,0.1);
-        }
+    .inp::placeholder { color: rgba(255,255,255,0.15); }
 
-        .form-error {
-            font-size: 0.75rem;
-            color: #f87171;
-            margin-top: 0.3rem;
-            display: none;
-        }
+    .inp:focus {
+        border-color: rgba(129,140,248,0.45);
+        background: rgba(255,255,255,0.06);
+        box-shadow: 0 0 0 3px rgba(129,140,248,0.08);
+    }
 
-        .form-input.error ~ .form-error { display: block; }
+    .inp.err {
+        border-color: rgba(248,113,113,0.6);
+        box-shadow: 0 0 0 3px rgba(248,113,113,0.08);
+    }
 
-        /* ═══════════════════════════════════════════════════════════════
-           SUBMIT BUTTON
-           ═══════════════════════════════════════════════════════════════ */
-        .btn-submit {
-            width: 100%;
-            padding: 0.9rem;
-            border: none;
-            border-radius: 12px;
-            color: white;
-            font-family: 'Inter', sans-serif;
-            font-size: 0.95rem;
-            font-weight: 600;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            background: linear-gradient(135deg, #7c3aed, #6366f1, #818cf8);
-            background-size: 200% 200%;
-            animation: btnGradient 4s ease infinite;
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
+    .field-err {
+        font-size: 0.72rem;
+        color: #f87171;
+        margin-top: 0.3rem;
+        display: none;
+    }
+    .inp.err ~ .field-err { display: block; }
 
-        @keyframes btnGradient {
-            0%   { background-position: 0% 50%; }
-            50%  { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
+    /* ── BUTTON ─────────────────────────────────────────────────── */
+    .btn {
+        width: 100%;
+        padding: 0.85rem;
+        border: none;
+        border-radius: 11px;
+        color: #fff;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 600;
+        letter-spacing: 0.03em;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(135deg, #4f46e5, #6366f1, #818cf8, #a78bfa);
+        background-size: 250% 250%;
+        animation: btnFlow 5s ease infinite;
+        transition: transform 0.25s, box-shadow 0.25s;
+    }
 
-        .btn-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(124,58,237,0.35);
-        }
+    @keyframes btnFlow {
+        0%   { background-position: 0% 50%; }
+        50%  { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
 
-        .btn-submit:active { transform: translateY(0) scale(0.98); }
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 28px rgba(99,102,241,0.35);
+    }
+    .btn:active { transform: translateY(0) scale(0.98); }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
 
-        .btn-submit:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none !important;
-            box-shadow: none !important;
-        }
+    .btn .sp {
+        display: none;
+        width: 18px; height: 18px;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 0.65s linear infinite;
+        margin: 0 auto;
+    }
+    .btn.ld .btn-t { display: none; }
+    .btn.ld .sp    { display: block; }
 
-        .btn-submit .spinner {
-            display: none;
-            width: 20px; height: 20px;
-            border: 2.5px solid rgba(255,255,255,0.3);
-            border-top-color: white;
-            border-radius: 50%;
-            animation: spin 0.7s linear infinite;
-            margin: 0 auto;
-        }
+    /* ── RESULT ─────────────────────────────────────────────────── */
+    .result {
+        width: 100%;
+        max-width: 900px;
+        margin-top: 2.2rem;
+        display: none;
+        animation: fadeUp 0.5s ease-out;
+    }
+    .result.show { display: block; }
 
-        .btn-submit.loading .btn-text { display: none; }
-        .btn-submit.loading .spinner  { display: block; }
+    .msg-ok {
+        padding: 0.85rem 1.1rem;
+        margin-bottom: 1rem;
+        background: rgba(129,140,248,0.07);
+        border: 1px solid rgba(129,140,248,0.14);
+        border-radius: 12px;
+        font-size: 0.85rem;
+        color: rgba(255,255,255,0.8);
+        display: none;
+        text-align: center;
+    }
+    .msg-ok.show { display: block; }
+    .msg-ok strong { color: #fff; }
+    .msg-ok .det { color: rgba(255,255,255,0.4); font-size: 0.78rem; display: block; margin-top: 0.15rem; }
 
-        /* ═══════════════════════════════════════════════════════════════
-           RESULT SECTION
-           ═══════════════════════════════════════════════════════════════ */
-        .result-section {
-            width: 100%;
-            max-width: 900px;
-            margin-top: 2.5rem;
-            display: none;
-            animation: fadeInUp 0.6s ease-out;
-        }
-        .result-section.visible { display: block; }
+    .msg-err {
+        padding: 0.85rem 1.1rem;
+        margin-bottom: 1rem;
+        background: rgba(248,113,113,0.07);
+        border: 1px solid rgba(248,113,113,0.14);
+        border-radius: 12px;
+        font-size: 0.85rem;
+        color: #f87171;
+        display: none;
+        text-align: center;
+    }
+    .msg-err.show { display: block; }
 
-        /* Success */
-        .success-message {
-            text-align: center;
-            padding: 1rem 1.25rem;
-            margin-bottom: 1rem;
-            background: rgba(129,140,248,0.08);
-            border: 1px solid rgba(129,140,248,0.15);
-            border-radius: 14px;
-            font-size: 0.88rem;
-            color: rgba(255,255,255,0.85);
-            display: none;
-            line-height: 1.5;
-        }
-        .success-message.visible { display: block; }
-        .success-message .check { color: #a78bfa; font-weight: 600; }
-        .success-message strong { color: #fff; font-weight: 600; }
-        .success-message .detail { color: rgba(255,255,255,0.45); font-size: 0.8rem; display: block; margin-top: 0.2rem; }
+    /* Download button row */
+    .actions {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 1.1rem;
+    }
 
-        /* Error */
-        .error-message {
-            text-align: center;
-            padding: 1rem 1.25rem;
-            margin-bottom: 1rem;
-            background: rgba(248,113,113,0.08);
-            border: 1px solid rgba(248,113,113,0.15);
-            border-radius: 14px;
-            font-size: 0.88rem;
-            color: #f87171;
-            display: none;
-        }
-        .error-message.visible { display: block; }
+    .dl-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.65rem 1.6rem;
+        background: rgba(129,140,248,0.08);
+        border: 1.5px solid rgba(129,140,248,0.22);
+        border-radius: 11px;
+        color: #c4b5fd;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+    .dl-btn:hover {
+        background: rgba(129,140,248,0.15);
+        border-color: rgba(129,140,248,0.35);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 16px rgba(129,140,248,0.15);
+    }
 
-        /* Download Button */
-        .result-actions {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 1.25rem;
-        }
+    /* PDF preview iframe */
+    .preview-box {
+        border-radius: 14px;
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.06);
+        box-shadow: 0 4px 28px rgba(0,0,0,0.35);
+    }
 
-        .btn-download {
-            padding: 0.75rem 2rem;
-            border: 1.5px solid rgba(167,139,250,0.25);
-            border-radius: 12px;
-            background: rgba(167,139,250,0.08);
-            backdrop-filter: blur(10px);
-            color: #e0e7ff;
-            font-family: 'Inter', sans-serif;
-            font-size: 0.88rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            text-decoration: none;
-        }
+    .preview-bar {
+        background: rgba(255,255,255,0.035);
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        padding: 0.65rem 1.1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .preview-bar span { font-size: 0.78rem; color: rgba(255,255,255,0.5); font-weight: 500; }
+    .preview-bar .badge {
+        background: rgba(129,140,248,0.12);
+        color: rgba(129,140,248,0.7);
+        font-size: 0.6rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 0.15rem 0.55rem;
+        border-radius: 20px;
+    }
 
-        .btn-download:hover {
-            background: rgba(167,139,250,0.15);
-            border-color: rgba(167,139,250,0.4);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 16px rgba(167,139,250,0.15);
-        }
+    .gen-loading {
+        display: none;
+        padding: 3.5rem;
+        text-align: center;
+        background: rgba(255,255,255,0.015);
+    }
+    .gen-loading.show { display: block; }
+    .gen-loading .ring {
+        width: 34px; height: 34px;
+        border: 3px solid rgba(255,255,255,0.07);
+        border-top-color: var(--accent);
+        border-radius: 50%;
+        animation: spin 0.65s linear infinite;
+        margin: 0 auto 0.7rem;
+    }
+    .gen-loading p { color: rgba(255,255,255,0.3); font-size: 0.78rem; }
 
-        .btn-download .icon { font-size: 1.1rem; }
+    .pdf-iframe {
+        width: 100%;
+        height: 680px;
+        border: none;
+        background: #111;
+        display: none;
+    }
 
-        /* ═══════════════════════════════════════════════════════════════
-           PDF PREVIEW (IFRAME)
-           ═══════════════════════════════════════════════════════════════ */
-        .preview-wrapper {
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.06);
-        }
+    /* ── SIGNATURE ───────────────────────────────────────────────── */
+    .sig {
+        margin-top: 3rem;
+        text-align: center;
+        animation: fadeUp 1s ease-out 0.4s both;
+    }
 
-        .preview-header {
-            background: rgba(255,255,255,0.04);
-            backdrop-filter: blur(10px);
-            padding: 0.75rem 1.25rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
+    .sig-text {
+        font-family: 'Dancing Script', cursive;
+        font-size: 1.25rem;
+        font-weight: 600;
+        background: linear-gradient(135deg, rgba(129,140,248,0.5), rgba(196,181,253,0.4), rgba(99,102,241,0.5));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: 0.03em;
+        opacity: 0.65;
+        transition: opacity 0.3s;
+    }
+    .sig-text:hover { opacity: 1; }
 
-        .preview-header span {
-            color: rgba(255,255,255,0.7);
-            font-weight: 500;
-            font-size: 0.82rem;
-        }
+    /* ── ANIMATIONS ─────────────────────────────────────────────── */
+    @keyframes fadeDown {
+        from { opacity: 0; transform: translateY(-18px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-        .preview-header .badge {
-            background: rgba(167,139,250,0.15);
-            padding: 0.15rem 0.6rem;
-            border-radius: 20px;
-            font-size: 0.65rem;
-            color: rgba(167,139,250,0.8);
-            font-weight: 600;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-        }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.07); border-radius: 3px; }
 
-        .pdf-frame {
-            width: 100%;
-            height: 700px;
-            border: none;
-            background: #1a1a2e;
-        }
-
-        /* Loading */
-        .preview-loading {
-            display: none;
-            padding: 4rem;
-            text-align: center;
-            background: rgba(255,255,255,0.02);
-        }
-        .preview-loading.visible { display: block; }
-        .preview-loading .pulse {
-            width: 36px; height: 36px;
-            border: 3px solid rgba(255,255,255,0.08);
-            border-top-color: #a78bfa;
-            border-radius: 50%;
-            animation: spin 0.7s linear infinite;
-            margin: 0 auto 0.75rem;
-        }
-        .preview-loading span { color: rgba(255,255,255,0.35); font-size: 0.82rem; }
-
-        /* ═══════════════════════════════════════════════════════════════
-           ANIMATIONS
-           ═══════════════════════════════════════════════════════════════ */
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(25px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-20px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* ═══════════════════════════════════════════════════════════════
-           SCROLLBAR
-           ═══════════════════════════════════════════════════════════════ */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
-
-        /* ═══════════════════════════════════════════════════════════════
-           RESPONSIVE
-           ═══════════════════════════════════════════════════════════════ */
-        @media (max-width: 640px) {
-            .content-wrapper { padding: 1.5rem 1rem 3rem; }
-            .glass-card { padding: 1.5rem; border-radius: 16px; }
-            .pdf-frame { height: 450px; }
-        }
-
-        @media (max-width: 480px) {
-            .header h1 { font-size: 2rem; }
-            .glass-card { padding: 1.25rem; }
-        }
-
-        @media print {
-            #waveCanvas, .btn-submit, .btn-download, .result-actions,
-            .preview-header, .header, .glass-card, .success-message,
-            .error-message { display: none !important; }
-            .preview-wrapper { box-shadow: none; border: none; }
-            .pdf-frame { height: auto; }
-        }
+    @media (max-width: 600px) {
+        .page { padding: 1.5rem 1rem 4rem; }
+        .card { padding: 1.5rem; }
+        .pdf-iframe { height: 450px; }
+    }
     </style>
 </head>
 <body>
-    <canvas id="waveCanvas"></canvas>
 
-    <div class="content-wrapper">
-        <!-- Header -->
-        <div class="header">
-            <h1>ADS Assignment<br>Document System</h1>
-            <p class="subtitle">Enter your details · Preview · Download</p>
+<canvas id="waveCanvas"></canvas>
+
+<div class="page">
+
+    <!-- Header -->
+    <div class="header">
+        <div class="logo">ADS</div>
+        <div class="tagline" id="tagline"><span class="cursor"></span></div>
+    </div>
+
+    <!-- Form Card -->
+    <div class="card" id="formCard">
+        <form id="form" autocomplete="off">
+
+            <div class="form-group">
+                <label class="lbl" for="sName">Full Name</label>
+                <input class="inp" type="text" id="sName" placeholder="e.g., Akshit" required autofocus />
+                <div class="field-err">Please enter your name</div>
+            </div>
+
+            <div class="form-group">
+                <label class="lbl" for="sPid">PID Number</label>
+                <input class="inp" type="text" id="sPid" placeholder="e.g., 25MSRSGIS001" required />
+                <div class="field-err">Please enter your PID</div>
+            </div>
+
+            <div class="form-group">
+                <label class="lbl" for="sCourse">Program</label>
+                <input class="inp" type="text" id="sCourse" placeholder="e.g., M.Sc. Remote Sensing & GIS" required />
+                <div class="field-err">Please enter your program</div>
+            </div>
+
+            <button class="btn" type="submit" id="btnGo">
+                <span class="btn-t">Generate Assignment</span>
+                <div class="sp"></div>
+            </button>
+
+        </form>
+    </div>
+
+    <!-- Result -->
+    <div class="result" id="result">
+        <div class="msg-ok" id="msgOk">
+            ✓ Generated for <strong id="dName"></strong>
+            <span class="det" id="dDet"></span>
+        </div>
+        <div class="msg-err" id="msgErr"></div>
+
+        <div class="actions">
+            <a class="dl-btn" id="dlPdf" href="#" download>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                Download PDF
+            </a>
         </div>
 
-        <!-- Form -->
-        <div class="glass-card" id="formCard">
-            <form id="assignmentForm" autocomplete="off">
-                <div class="form-group">
-                    <label class="form-label" for="studentName">Full Name</label>
-                    <input type="text" id="studentName" class="form-input" placeholder="e.g., John Doe" required autofocus />
-                    <div class="form-error">Please enter your full name</div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="studentPid">PID Number</label>
-                    <input type="text" id="studentPid" class="form-input" placeholder="e.g., 25MSRSGIS002" required />
-                    <div class="form-error">Please enter your PID number</div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="studentCourse">Program</label>
-                    <input type="text" id="studentCourse" class="form-input" placeholder="e.g., M.Sc. Remote Sensing & GIS" required />
-                    <div class="form-error">Please enter your program name</div>
-                </div>
-
-                <button type="submit" class="btn-submit" id="btnSubmit">
-                    <span class="btn-text">Generate Assignment</span>
-                    <div class="spinner"></div>
-                </button>
-            </form>
-        </div>
-
-        <!-- Result Section -->
-        <div class="result-section" id="resultSection">
-            <div class="success-message" id="successMessage">
-                <span class="check">✓</span> Assignment generated for
-                <strong id="displayName"></strong>
-                <span class="detail" id="displayDetails"></span>
+        <div class="preview-box">
+            <div class="preview-bar">
+                <span>📋 Preview</span>
+                <span class="badge">Live PDF</span>
             </div>
-            <div class="error-message" id="errorMessage"></div>
-
-            <div class="result-actions">
-                <a class="btn-download" id="downloadPdf" href="#" download>
-                    <span class="icon">📄</span>
-                    Download PDF
-                </a>
+            <div class="gen-loading" id="genLoad">
+                <div class="ring"></div>
+                <p>Generating your assignment...</p>
             </div>
-
-            <div class="preview-wrapper">
-                <div class="preview-header">
-                    <span>📋 Document Preview</span>
-                    <span class="badge">Live</span>
-                </div>
-                <div class="preview-loading" id="previewLoading">
-                    <div class="pulse"></div>
-                    <span>Generating your assignment...</span>
-                </div>
-                <iframe class="pdf-frame" id="pdfFrame" style="display:none;"></iframe>
-            </div>
+            <iframe class="pdf-iframe" id="pdfFrame"></iframe>
         </div>
     </div>
 
-    <script>
-    // ═══════════════════════════════════════════════════════════════════════
-    // THREE.JS — 3D SOUND WAVES IN SPACE (Interactive)
-    // ═══════════════════════════════════════════════════════════════════════
-    (function initWaves() {
-        const canvas = document.getElementById('waveCanvas');
-        const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    <!-- Signature -->
+    <div class="sig">
+        <div class="sig-text">ViR@hitvin</div>
+    </div>
 
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
-        camera.position.set(0, 30, 80);
-        camera.lookAt(0, 0, 0);
+</div>
 
-        // Mouse tracking
-        let mouseX = 0, mouseY = 0;
-        let targetMouseX = 0, targetMouseY = 0;
-        let touchInfluence = { x: 0, y: 0, strength: 0 };
+<script>
+// ══════════════════════════════════════════════════════════════════════
+// THREE.JS — FIBONACCI / HEXAGONAL WAVEFORM IN SPACE
+// Reactive to mouse and touch
+// ══════════════════════════════════════════════════════════════════════
+(function () {
+    const canvas = document.getElementById('waveCanvas');
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-        document.addEventListener('mousemove', (e) => {
-            targetMouseX = (e.clientX / window.innerWidth - 0.5) * 2;
-            targetMouseY = (e.clientY / window.innerHeight - 0.5) * 2;
-        });
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 2000);
+    camera.position.set(0, 55, 95);
+    camera.lookAt(0, 0, 0);
 
-        // Touch/click interaction — creates a ripple in the waves
-        function onInteract(clientX, clientY) {
-            touchInfluence.x = (clientX / window.innerWidth - 0.5) * 2;
-            touchInfluence.y = (clientY / window.innerHeight - 0.5) * 2;
-            touchInfluence.strength = 1.0;
-        }
+    // ── Mouse / Touch ────────────────────────────────────────────
+    let mx = 0, my = 0, tmx = 0, tmy = 0;
+    let ripple = { x: 0, y: 0, str: 0 };
 
-        canvas.addEventListener('mousedown', (e) => onInteract(e.clientX, e.clientY));
-        canvas.addEventListener('touchstart', (e) => {
-            if (e.touches.length > 0) onInteract(e.touches[0].clientX, e.touches[0].clientY);
-        }, { passive: true });
-
-        // ─── Wave Plane ─────────────────────────────────────────────────
-        const WAVE_SEG_X = 200;
-        const WAVE_SEG_Z = 200;
-        const waveGeo = new THREE.PlaneGeometry(200, 200, WAVE_SEG_X, WAVE_SEG_Z);
-        waveGeo.rotateX(-Math.PI / 2);
-
-        const waveMat = new THREE.ShaderMaterial({
-            uniforms: {
-                uTime: { value: 0.0 },
-                uMouse: { value: new THREE.Vector2(0, 0) },
-                uTouch: { value: new THREE.Vector3(0, 0, 0) },
-                uColor1: { value: new THREE.Color(0x6366f1) },
-                uColor2: { value: new THREE.Color(0xa78bfa) },
-                uColor3: { value: new THREE.Color(0x818cf8) }
-            },
-            vertexShader: `
-                uniform float uTime;
-                uniform vec2 uMouse;
-                uniform vec3 uTouch;
-                varying float vHeight;
-                varying vec2 vUv;
-
-                void main() {
-                    vec3 pos = position;
-                    float x = pos.x;
-                    float z = pos.z;
-
-                    // Multiple wave layers (sound wave propagation)
-                    float wave1 = sin(x * 0.08 + uTime * 0.8) * 3.0;
-                    float wave2 = sin(z * 0.06 + uTime * 0.6) * 2.5;
-                    float wave3 = sin((x + z) * 0.05 + uTime * 1.2) * 2.0;
-                    float wave4 = cos(x * 0.12 - uTime * 0.4) * sin(z * 0.1 + uTime * 0.7) * 1.5;
-
-                    // Mouse influence — waves react to cursor position
-                    float mx = uMouse.x * 100.0;
-                    float mz = uMouse.y * 100.0;
-                    float mouseDist = length(vec2(x - mx, z - mz));
-                    float mouseWave = sin(mouseDist * 0.1 - uTime * 2.0) * exp(-mouseDist * 0.015) * 5.0;
-
-                    // Touch ripple
-                    float tx = uTouch.x * 100.0;
-                    float tz = uTouch.y * 100.0;
-                    float touchStr = uTouch.z;
-                    float touchDist = length(vec2(x - tx, z - tz));
-                    float touchWave = sin(touchDist * 0.15 - uTime * 4.0) * exp(-touchDist * 0.02) * 8.0 * touchStr;
-
-                    pos.y = wave1 + wave2 + wave3 + wave4 + mouseWave + touchWave;
-                    vHeight = pos.y;
-                    vUv = uv;
-
-                    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
-                }
-            `,
-            fragmentShader: `
-                uniform vec3 uColor1;
-                uniform vec3 uColor2;
-                uniform vec3 uColor3;
-                uniform float uTime;
-                varying float vHeight;
-                varying vec2 vUv;
-
-                void main() {
-                    // Color based on wave height
-                    float t = (vHeight + 8.0) / 16.0;
-                    vec3 color = mix(uColor1, uColor2, smoothstep(0.0, 0.5, t));
-                    color = mix(color, uColor3, smoothstep(0.5, 1.0, t));
-
-                    // Subtle grid lines for depth
-                    float gridX = abs(fract(vUv.x * 40.0) - 0.5) * 2.0;
-                    float gridZ = abs(fract(vUv.y * 40.0) - 0.5) * 2.0;
-                    float grid = max(
-                        smoothstep(0.96, 1.0, gridX),
-                        smoothstep(0.96, 1.0, gridZ)
-                    );
-
-                    color += grid * 0.15;
-
-                    // Opacity based on height — peaks glow
-                    float alpha = 0.25 + smoothstep(0.0, 8.0, abs(vHeight)) * 0.4;
-                    alpha += grid * 0.1;
-
-                    gl_FragColor = vec4(color, alpha);
-                }
-            `,
-            transparent: true,
-            side: THREE.DoubleSide,
-            wireframe: false,
-            depthWrite: false
-        });
-
-        const waveMesh = new THREE.Mesh(waveGeo, waveMat);
-        waveMesh.position.y = -15;
-        scene.add(waveMesh);
-
-        // ─── Wireframe overlay for depth perception ─────────────────────
-        const wireMat = new THREE.ShaderMaterial({
-            uniforms: waveMat.uniforms,
-            vertexShader: waveMat.vertexShader,
-            fragmentShader: `
-                uniform float uTime;
-                varying float vHeight;
-                varying vec2 vUv;
-                void main() {
-                    float alpha = 0.06 + smoothstep(2.0, 8.0, abs(vHeight)) * 0.12;
-                    gl_FragColor = vec4(0.7, 0.6, 1.0, alpha);
-                }
-            `,
-            transparent: true,
-            wireframe: true,
-            depthWrite: false
-        });
-
-        const wireMesh = new THREE.Mesh(waveGeo.clone(), wireMat);
-        wireMesh.rotation.x = -Math.PI / 2;
-        // Share the vertex shader behavior
-        wireMesh.position.copy(waveMesh.position);
-        scene.add(wireMesh);
-
-        // ─── Floating particles (atoms/stars in space) ──────────────────
-        const particleCount = 1500;
-        const particleGeo = new THREE.BufferGeometry();
-        const positions = new Float32Array(particleCount * 3);
-        const colors = new Float32Array(particleCount * 3);
-        const sizes = new Float32Array(particleCount);
-
-        for (let i = 0; i < particleCount; i++) {
-            positions[i * 3]     = (Math.random() - 0.5) * 300;
-            positions[i * 3 + 1] = (Math.random() - 0.5) * 150;
-            positions[i * 3 + 2] = (Math.random() - 0.5) * 300;
-
-            const t = Math.random();
-            if (t < 0.33) {
-                colors[i*3] = 0.39; colors[i*3+1] = 0.4; colors[i*3+2] = 0.95; // indigo
-            } else if (t < 0.66) {
-                colors[i*3] = 0.65; colors[i*3+1] = 0.55; colors[i*3+2] = 0.98; // purple
-            } else {
-                colors[i*3] = 0.5; colors[i*3+1] = 0.55; colors[i*3+2] = 0.97; // blue
-            }
-
-            sizes[i] = Math.random() * 1.5 + 0.3;
-        }
-
-        particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-        particleGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-        particleGeo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
-
-        const particleMat = new THREE.PointsMaterial({
-            size: 0.8,
-            vertexColors: true,
-            transparent: true,
-            opacity: 0.5,
-            sizeAttenuation: true,
-            blending: THREE.AdditiveBlending,
-            depthWrite: false
-        });
-
-        const particles = new THREE.Points(particleGeo, particleMat);
-        scene.add(particles);
-
-        // ─── Ambient light ──────────────────────────────────────────────
-        scene.add(new THREE.AmbientLight(0x6366f1, 0.3));
-
-        // ─── Animation Loop ─────────────────────────────────────────────
-        const clock = new THREE.Clock();
-
-        function animate() {
-            requestAnimationFrame(animate);
-            const elapsed = clock.getElapsedTime();
-
-            // Smooth mouse
-            mouseX += (targetMouseX - mouseX) * 0.05;
-            mouseY += (targetMouseY - mouseY) * 0.05;
-
-            // Decay touch influence
-            touchInfluence.strength *= 0.985;
-            if (touchInfluence.strength < 0.001) touchInfluence.strength = 0;
-
-            // Update uniforms
-            waveMat.uniforms.uTime.value = elapsed;
-            waveMat.uniforms.uMouse.value.set(mouseX, mouseY);
-            waveMat.uniforms.uTouch.value.set(
-                touchInfluence.x,
-                touchInfluence.y,
-                touchInfluence.strength
-            );
-
-            // Sync wireframe uniforms
-            wireMat.uniforms.uTime.value = elapsed;
-            wireMat.uniforms.uMouse.value.copy(waveMat.uniforms.uMouse.value);
-            wireMat.uniforms.uTouch.value.copy(waveMat.uniforms.uTouch.value);
-
-            // Particle drift
-            const posArr = particleGeo.attributes.position.array;
-            for (let i = 0; i < particleCount; i++) {
-                posArr[i * 3 + 1] += Math.sin(elapsed * 0.3 + i) * 0.008;
-                posArr[i * 3] += Math.cos(elapsed * 0.2 + i * 0.7) * 0.005;
-            }
-            particleGeo.attributes.position.needsUpdate = true;
-
-            // Camera subtle sway
-            camera.position.x += (mouseX * 12 - camera.position.x) * 0.02;
-            camera.position.y += (30 - mouseY * 8 - camera.position.y) * 0.02;
-            camera.lookAt(0, -5, 0);
-
-            // Rotate particles slowly
-            particles.rotation.y = elapsed * 0.02;
-
-            renderer.render(scene, camera);
-        }
-
-        animate();
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-    })();
-
-    // ═══════════════════════════════════════════════════════════════════════
-    // LOCAL STORAGE AUTOSAVE
-    // ═══════════════════════════════════════════════════════════════════════
-    const STORAGE_KEY = 'ads_assignment_form';
-
-    function loadFromStorage() {
-        try {
-            const saved = localStorage.getItem(STORAGE_KEY);
-            if (saved) {
-                const data = JSON.parse(saved);
-                if (data.studentName)   nameInput.value   = data.studentName;
-                if (data.studentPid)    pidInput.value    = data.studentPid;
-                if (data.studentCourse) courseInput.value  = data.studentCourse;
-            }
-        } catch (e) {}
-    }
-
-    function saveToStorage() {
-        try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify({
-                studentName: nameInput.value.trim(),
-                studentPid: pidInput.value.trim(),
-                studentCourse: courseInput.value.trim()
-            }));
-        } catch (e) {}
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════
-    // FORM & API
-    // ═══════════════════════════════════════════════════════════════════════
-    const form          = document.getElementById('assignmentForm');
-    const btnSubmit     = document.getElementById('btnSubmit');
-    const nameInput     = document.getElementById('studentName');
-    const pidInput      = document.getElementById('studentPid');
-    const courseInput    = document.getElementById('studentCourse');
-    const resultSection = document.getElementById('resultSection');
-    const previewLoading= document.getElementById('previewLoading');
-    const pdfFrame      = document.getElementById('pdfFrame');
-    const downloadPdf   = document.getElementById('downloadPdf');
-    const successMessage= document.getElementById('successMessage');
-    const displayName   = document.getElementById('displayName');
-    const displayDetails= document.getElementById('displayDetails');
-    const errorMessage  = document.getElementById('errorMessage');
-
-    function validateInputs() {
-        let valid = true;
-        [nameInput, pidInput, courseInput].forEach(inp => inp.classList.remove('error'));
-        if (!nameInput.value.trim())  { nameInput.classList.add('error');  valid = false; }
-        if (!pidInput.value.trim())   { pidInput.classList.add('error');   valid = false; }
-        if (!courseInput.value.trim()) { courseInput.classList.add('error'); valid = false; }
-        return valid;
-    }
-
-    nameInput.addEventListener('input',   () => { nameInput.classList.remove('error');   saveToStorage(); });
-    pidInput.addEventListener('input',    () => { pidInput.classList.remove('error');    saveToStorage(); });
-    courseInput.addEventListener('input',  () => { courseInput.classList.remove('error');  saveToStorage(); });
-
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        errorMessage.classList.remove('visible');
-        successMessage.classList.remove('visible');
-
-        if (!validateInputs()) return;
-
-        btnSubmit.classList.add('loading');
-        btnSubmit.disabled = true;
-        resultSection.classList.remove('visible');
-        pdfFrame.style.display = 'none';
-        previewLoading.classList.add('visible');
-
-        try {
-            const response = await fetch('/generate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    studentName:  nameInput.value.trim(),
-                    studentPid:   pidInput.value.trim(),
-                    studentCourse: courseInput.value.trim()
-                })
-            });
-
-            const data = await response.json();
-
-            if (!data.success) {
-                showError(data.error || 'Failed to generate assignment.');
-                return;
-            }
-
-            displayName.textContent = data.studentName;
-            displayDetails.textContent = `PID: ${data.studentPid} · Program: ${data.studentCourse}`;
-            successMessage.classList.add('visible');
-
-            if (data.pdfReady && data.pdfUrl) {
-                downloadPdf.href = data.pdfUrl;
-                downloadPdf.style.display = 'flex';
-
-                // Show PDF preview in iframe
-                pdfFrame.src = data.previewUrl;
-                pdfFrame.style.display = 'block';
-            } else {
-                downloadPdf.style.display = 'none';
-                showError('PDF could not be generated. Please check the server logs.');
-            }
-
-            previewLoading.classList.remove('visible');
-            resultSection.classList.add('visible');
-            resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-        } catch (err) {
-            showError('Network error. Please ensure the server is running.');
-            previewLoading.classList.remove('visible');
-        } finally {
-            btnSubmit.classList.remove('loading');
-            btnSubmit.disabled = false;
-        }
+    document.addEventListener('mousemove', e => {
+        tmx = (e.clientX / window.innerWidth  - 0.5) * 2;
+        tmy = (e.clientY / window.innerHeight - 0.5) * 2;
     });
 
-    function showError(msg) {
-        errorMessage.textContent = msg;
-        errorMessage.classList.add('visible');
-        previewLoading.classList.remove('visible');
-        resultSection.classList.add('visible');
-        resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    function onTap(cx, cy) {
+        ripple.x = (cx / window.innerWidth  - 0.5) * 2;
+        ripple.y = (cy / window.innerHeight - 0.5) * 2;
+        ripple.str = 1.0;
     }
 
-    // Initialize
-    loadFromStorage();
-    </script>
+    canvas.addEventListener('mousedown', e => onTap(e.clientX, e.clientY));
+    canvas.addEventListener('touchstart', e => {
+        if (e.touches.length) onTap(e.touches[0].clientX, e.touches[0].clientY);
+    }, { passive: true });
+
+    // ── Wave Plane (with Fibonacci + Hex shader) ─────────────────
+    const SEG = 180;
+    const planeGeo = new THREE.PlaneGeometry(220, 220, SEG, SEG);
+    planeGeo.rotateX(-Math.PI / 2);
+
+    const planeMat = new THREE.ShaderMaterial({
+        uniforms: {
+            uT:     { value: 0 },
+            uMouse: { value: new THREE.Vector2(0, 0) },
+            uRipple:{ value: new THREE.Vector3(0, 0, 0) }
+        },
+        vertexShader: /* glsl */`
+            uniform float uT;
+            uniform vec2  uMouse;
+            uniform vec3  uRipple;
+
+            varying float vH;
+            varying vec2  vUv;
+
+            // Fibonacci / golden-angle hex tiling helper
+            float hex(vec2 p) {
+                p = abs(p);
+                return max(dot(p, normalize(vec2(1.0, 1.73))), p.x);
+            }
+
+            void main() {
+                vec3 pos = position;
+                float x = pos.x * 0.05;
+                float z = pos.z * 0.05;
+
+                // Sound wave layers
+                float w1 = sin(x * 2.1 + uT * 0.7) * 3.2;
+                float w2 = sin(z * 1.8 + uT * 0.55) * 2.8;
+                float w3 = sin((x + z) * 1.4 + uT * 1.1) * 2.0;
+                float w4 = cos(x * 3.2 - uT * 0.9) * sin(z * 2.6 + uT * 0.6) * 1.4;
+
+                // Fibonacci shell spiral
+                float r = length(vec2(x, z));
+                float phi = atan(z, x);
+                float fib = sin(r * 6.28 - phi * 2.618 + uT * 0.4) * 1.8;
+
+                // Hexagonal standing wave
+                vec2 hexUv = vec2(x, z) * 3.5;
+                float hx = hex(fract(hexUv) - 0.5);
+                float hexWave = sin(hx * 8.0 + uT * 1.3) * 0.9;
+
+                // Mouse influence
+                vec2 mpos = uMouse * 110.0;
+                float md = length(vec2(pos.x - mpos.x, pos.z - mpos.y));
+                float mWave = sin(md * 0.08 - uT * 2.2) * exp(-md * 0.012) * 5.5;
+
+                // Touch ripple
+                vec2 rpos = vec2(uRipple.x, uRipple.y) * 110.0;
+                float rd = length(vec2(pos.x - rpos.x, pos.z - rpos.y));
+                float rWave = sin(rd * 0.12 - uT * 5.0) * exp(-rd * 0.018) * 9.0 * uRipple.z;
+
+                pos.y = w1 + w2 + w3 + w4 + fib + hexWave + mWave + rWave;
+                vH = pos.y;
+                vUv = uv;
+
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+            }
+        `,
+        fragmentShader: /* glsl */`
+            uniform float uT;
+            varying float vH;
+            varying vec2  vUv;
+
+            void main() {
+                // Deep space palette: indigo → violet → cyan tips
+                float t = clamp((vH + 10.0) / 20.0, 0.0, 1.0);
+                vec3 col1 = vec3(0.12, 0.12, 0.38);   // deep indigo
+                vec3 col2 = vec3(0.38, 0.28, 0.75);   // violet
+                vec3 col3 = vec3(0.55, 0.85, 1.0);    // cyan glow at peaks
+
+                vec3 col = mix(col1, col2, smoothstep(0.0, 0.55, t));
+                col = mix(col, col3, smoothstep(0.72, 1.0, t));
+
+                // Hex grid overlay for structural feel
+                vec2 hg = fract(vUv * 38.0) - 0.5;
+                float gridLine = 1.0 - smoothstep(0.0, 0.03,
+                    min(abs(hg.x), min(abs(hg.y), abs(hg.x + hg.y))));
+                col += gridLine * vec3(0.2, 0.25, 0.6) * 0.18;
+
+                // Glow at peaks
+                float glow = smoothstep(4.0, 9.0, abs(vH));
+                col += vec3(0.3, 0.25, 0.7) * glow * 0.4;
+
+                float alpha = 0.18 + glow * 0.35 + gridLine * 0.08;
+                gl_FragColor = vec4(col, alpha);
+            }
+        `,
+        transparent: true,
+        side: THREE.DoubleSide,
+        depthWrite: false
+    });
+
+    const planeMesh = new THREE.Mesh(planeGeo, planeMat);
+    planeMesh.position.y = -18;
+    scene.add(planeMesh);
+
+    // Wireframe twin for structure
+    const wireMat = new THREE.ShaderMaterial({
+        uniforms: planeMat.uniforms,
+        vertexShader: planeMat.vertexShader,
+        fragmentShader: `
+            uniform float uT;
+            varying float vH;
+            varying vec2  vUv;
+            void main() {
+                float glow = smoothstep(2.0, 9.0, abs(vH));
+                float a = 0.05 + glow * 0.15;
+                gl_FragColor = vec4(0.6, 0.55, 1.0, a);
+            }
+        `,
+        transparent: true,
+        wireframe: true,
+        depthWrite: false
+    });
+    const wireMesh = new THREE.Mesh(planeGeo.clone(), wireMat);
+    wireMesh.position.copy(planeMesh.position);
+    scene.add(wireMesh);
+
+    // ── Floating geometric shapes (Hex + Pentagon particles) ─────
+    const SHAPES = [];
+    const shapeCols = [0x6366f1, 0x818cf8, 0xa78bfa, 0xc4b5fd, 0x38bdf8, 0x7c3aed];
+
+    function makeHexGeo(r) {
+        const pts = [];
+        for (let i = 0; i < 6; i++) {
+            const a = (Math.PI / 3) * i;
+            pts.push(new THREE.Vector2(Math.cos(a) * r, Math.sin(a) * r));
+        }
+        return new THREE.LatheGeometry([new THREE.Vector2(r, 0), new THREE.Vector2(r * 0.85, r * 0.15)], 6);
+    }
+
+    function makePentGeo(r) {
+        const geo = new THREE.CylinderGeometry(r, r, r * 0.08, 5);
+        return geo;
+    }
+
+    for (let i = 0; i < 30; i++) {
+        const isHex = Math.random() > 0.45;
+        const r = Math.random() * 1.2 + 0.3;
+        const geo = isHex
+            ? new THREE.CylinderGeometry(r, r, r * 0.06, 6, 1)
+            : new THREE.CylinderGeometry(r, r, r * 0.06, 5, 1);
+
+        const col = shapeCols[Math.floor(Math.random() * shapeCols.length)];
+        const mat = new THREE.MeshBasicMaterial({
+            color: col,
+            transparent: true,
+            opacity: 0.12 + Math.random() * 0.18,
+            wireframe: Math.random() > 0.4
+        });
+
+        const mesh = new THREE.Mesh(geo, mat);
+        const angle = Math.random() * Math.PI * 2;
+        const dist  = Math.random() * 180 + 40;
+        mesh.position.set(
+            Math.cos(angle) * dist,
+            (Math.random() - 0.5) * 80,
+            Math.sin(angle) * dist
+        );
+        mesh.rotation.set(
+            Math.random() * Math.PI,
+            Math.random() * Math.PI,
+            Math.random() * Math.PI
+        );
+
+        mesh.userData = {
+            ry: (Math.random() - 0.5) * 0.008,
+            rx: (Math.random() - 0.5) * 0.004,
+            fy: Math.random() * 0.002 + 0.0005,
+            fa: Math.random() * Math.PI * 2,
+            by: mesh.position.y
+        };
+
+        scene.add(mesh);
+        SHAPES.push(mesh);
+    }
+
+    // ── Stars (space dust) ───────────────────────────────────────
+    const starCount = 2000;
+    const sGeo = new THREE.BufferGeometry();
+    const sPos = new Float32Array(starCount * 3);
+    const sCol = new Float32Array(starCount * 3);
+
+    for (let i = 0; i < starCount; i++) {
+        const phi   = Math.acos(2 * Math.random() - 1);
+        const theta = Math.random() * Math.PI * 2;
+        const dist  = Math.random() * 700 + 100;
+        sPos[i*3]   = dist * Math.sin(phi) * Math.cos(theta);
+        sPos[i*3+1] = dist * Math.cos(phi);
+        sPos[i*3+2] = dist * Math.sin(phi) * Math.sin(theta);
+
+        const t = Math.random();
+        sCol[i*3]   = 0.5 + t * 0.4;
+        sCol[i*3+1] = 0.5 + t * 0.3;
+        sCol[i*3+2] = 0.8 + t * 0.2;
+    }
+
+    sGeo.setAttribute('position', new THREE.BufferAttribute(sPos, 3));
+    sGeo.setAttribute('color',    new THREE.BufferAttribute(sCol, 3));
+
+    const sMat = new THREE.PointsMaterial({
+        size: 0.7,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.6,
+        sizeAttenuation: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+    });
+
+    scene.add(new THREE.Points(sGeo, sMat));
+
+    // ── Animate ──────────────────────────────────────────────────
+    const clock = new THREE.Clock();
+
+    function animate() {
+        requestAnimationFrame(animate);
+        const t = clock.getElapsedTime();
+
+        mx += (tmx - mx) * 0.04;
+        my += (tmy - my) * 0.04;
+        ripple.str *= 0.984;
+
+        planeMat.uniforms.uT.value     = t;
+        planeMat.uniforms.uMouse.value.set(mx, my);
+        planeMat.uniforms.uRipple.value.set(ripple.x, ripple.y, ripple.str);
+
+        wireMat.uniforms.uT.value      = t;
+        wireMat.uniforms.uMouse.value.copy(planeMat.uniforms.uMouse.value);
+        wireMat.uniforms.uRipple.value.copy(planeMat.uniforms.uRipple.value);
+
+        SHAPES.forEach(s => {
+            s.rotation.y += s.userData.ry;
+            s.rotation.x += s.userData.rx;
+            s.position.y  = s.userData.by + Math.sin(t * s.userData.fy + s.userData.fa) * 4;
+        });
+
+        camera.position.x += (mx * 10 - camera.position.x) * 0.02;
+        camera.position.y += (55 - my * 6 - camera.position.y) * 0.02;
+        camera.lookAt(0, -5, 0);
+
+        renderer.render(scene, camera);
+    }
+
+    animate();
+
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+})();
+
+// ══════════════════════════════════════════════════════════════════════
+// TYPEWRITER TAGLINE — loops forever
+// ══════════════════════════════════════════════════════════════════════
+(function typewriter() {
+    const el   = document.getElementById('tagline');
+    const text = 'Together, no one walks alone';
+    let   i    = 0;
+    let   dir  = 1;  // 1 = typing, -1 = deleting
+    let   wait = 0;
+
+    function tick() {
+        if (wait > 0) { wait--; setTimeout(tick, 80); return; }
+
+        if (dir === 1) {
+            i++;
+            el.innerHTML = text.slice(0, i) + '<span class="cursor"></span>';
+            if (i === text.length) { wait = 28; dir = -1; }
+            setTimeout(tick, 65 + Math.random() * 40);
+        } else {
+            i--;
+            el.innerHTML = text.slice(0, i) + '<span class="cursor"></span>';
+            if (i === 0) { wait = 14; dir = 1; }
+            setTimeout(tick, 38);
+        }
+    }
+
+    setTimeout(tick, 600);
+})();
+
+// ══════════════════════════════════════════════════════════════════════
+// LOCAL STORAGE
+// ══════════════════════════════════════════════════════════════════════
+const SK = 'ads_v3';
+const nI = document.getElementById('sName');
+const pI = document.getElementById('sPid');
+const cI = document.getElementById('sCourse');
+
+function save() {
+    try { localStorage.setItem(SK, JSON.stringify({ n: nI.value, p: pI.value, c: cI.value })); } catch(e) {}
+}
+function load() {
+    try {
+        const d = JSON.parse(localStorage.getItem(SK) || '{}');
+        if (d.n) nI.value = d.n;
+        if (d.p) pI.value = d.p;
+        if (d.c) cI.value = d.c;
+    } catch(e) {}
+}
+
+[nI, pI, cI].forEach(el => el.addEventListener('input', () => { el.classList.remove('err'); save(); }));
+load();
+
+// ══════════════════════════════════════════════════════════════════════
+// FORM SUBMIT
+// ══════════════════════════════════════════════════════════════════════
+const form    = document.getElementById('form');
+const btnGo   = document.getElementById('btnGo');
+const result  = document.getElementById('result');
+const msgOk   = document.getElementById('msgOk');
+const msgErr  = document.getElementById('msgErr');
+const dName   = document.getElementById('dName');
+const dDet    = document.getElementById('dDet');
+const dlPdf   = document.getElementById('dlPdf');
+const genLoad = document.getElementById('genLoad');
+const pdfFrame= document.getElementById('pdfFrame');
+
+function showErr(msg) {
+    msgErr.textContent = msg;
+    msgErr.classList.add('show');
+    genLoad.classList.remove('show');
+    result.classList.add('show');
+    result.scrollIntoView({ behavior: 'smooth' });
+}
+
+function validate() {
+    let ok = true;
+    [nI, pI, cI].forEach(el => el.classList.remove('err'));
+    if (!nI.value.trim()) { nI.classList.add('err'); ok = false; }
+    if (!pI.value.trim()) { pI.classList.add('err'); ok = false; }
+    if (!cI.value.trim()) { cI.classList.add('err'); ok = false; }
+    return ok;
+}
+
+form.addEventListener('submit', async e => {
+    e.preventDefault();
+    msgOk.classList.remove('show');
+    msgErr.classList.remove('show');
+    if (!validate()) return;
+
+    btnGo.classList.add('ld');
+    btnGo.disabled = true;
+    pdfFrame.style.display = 'none';
+    genLoad.classList.add('show');
+    result.classList.add('show');
+    result.scrollIntoView({ behavior: 'smooth' });
+
+    try {
+        const res  = await fetch('/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                studentName:   nI.value.trim(),
+                studentPid:    pI.value.trim(),
+                studentCourse: cI.value.trim()
+            })
+        });
+        const data = await res.json();
+
+        if (!data.success) { showErr(data.error || 'Generation failed.'); return; }
+
+        dName.textContent = data.studentName;
+        dDet.textContent  = `PID: ${data.studentPid}  ·  ${data.studentCourse}`;
+        msgOk.classList.add('show');
+
+        if (data.pdfReady) {
+            dlPdf.href             = data.pdfUrl;
+            dlPdf.style.display    = 'flex';
+            pdfFrame.src           = data.previewUrl;
+            pdfFrame.style.display = 'block';
+        } else {
+            dlPdf.style.display = 'none';
+            showErr('PDF could not be generated — check server logs.');
+        }
+
+        genLoad.classList.remove('show');
+
+    } catch (err) {
+        showErr('Network error. Please check the server.');
+    } finally {
+        btnGo.classList.remove('ld');
+        btnGo.disabled = false;
+    }
+});
+</script>
 </body>
 </html>
