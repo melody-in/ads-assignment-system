@@ -172,6 +172,8 @@ def modify_docx_template(student_name, student_pid, student_course, output_path=
         _replace_in_paragraph(para, find_name, student_name)
         _replace_in_paragraph(para, find_pid, student_pid)
         _replace_in_paragraph(para, find_course, student_course)
+        _replace_in_paragraph(para, 'M.Sc. GIS & Remote Sensing', student_course)
+        _replace_in_paragraph(para, 'M.Sc.  Remote Sensing & Gis', student_course)
 
     # ── Replace in all tables ──
     for table in doc.tables:
@@ -181,6 +183,8 @@ def modify_docx_template(student_name, student_pid, student_course, output_path=
                     _replace_in_paragraph(para, find_name, student_name)
                     _replace_in_paragraph(para, find_pid, student_pid)
                     _replace_in_paragraph(para, find_course, student_course)
+                    _replace_in_paragraph(para, 'M.Sc. GIS & Remote Sensing', student_course)
+                    _replace_in_paragraph(para, 'M.Sc.  Remote Sensing & Gis', student_course)
 
     # ── Replace in headers and footers ──
     for section in doc.sections:
@@ -190,12 +194,16 @@ def modify_docx_template(student_name, student_pid, student_course, output_path=
                     _replace_in_paragraph(para, find_name, student_name)
                     _replace_in_paragraph(para, find_pid, student_pid)
                     _replace_in_paragraph(para, find_course, student_course)
+                    _replace_in_paragraph(para, 'M.Sc. GIS & Remote Sensing', student_course)
+                    _replace_in_paragraph(para, 'M.Sc.  Remote Sensing & Gis', student_course)
         for footer in [section.footer, section.first_page_footer]:
             if footer and footer.is_linked_to_previous is False:
                 for para in footer.paragraphs:
                     _replace_in_paragraph(para, find_name, student_name)
                     _replace_in_paragraph(para, find_pid, student_pid)
                     _replace_in_paragraph(para, find_course, student_course)
+                    _replace_in_paragraph(para, 'M.Sc. GIS & Remote Sensing', student_course)
+                    _replace_in_paragraph(para, 'M.Sc.  Remote Sensing & Gis', student_course)
 
     if output_path:
         doc.save(output_path)
