@@ -69,24 +69,7 @@
         filter: drop-shadow(0 0 30px rgba(129,140,248,0.25));
     }
 
-    .sig-header {
-        font-family: 'Dancing Script', cursive;
-        font-size: clamp(1.2rem, 3vw, 2rem);
-        font-weight: 600;
-        background: linear-gradient(135deg, rgba(129,140,248,0.8), rgba(196,181,253,0.8), rgba(99,102,241,0.8));
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        margin-left: 0.5rem;
-        animation: blinkSig 1.5s ease-in-out infinite;
-    }
-
-    @keyframes blinkSig {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.2; }
-    }
-
-    /* Fading tagline */
+    /* Typewriter tagline */
     .tagline {
         margin-top: 0.9rem;
         font-size: 0.85rem;
@@ -95,13 +78,19 @@
         color: rgba(255,255,255,0.4);
         font-style: italic;
         min-height: 1.2em;
-        animation: fadeTagline 4s ease-in-out infinite;
     }
-
-    @keyframes fadeTagline {
-        0%, 100% { opacity: 0; transform: scale(0.98); }
-        50% { opacity: 1; transform: scale(1); }
+    
+    .tagline .cursor {
+        display: inline-block;
+        width: 1px;
+        height: 0.85em;
+        background: rgba(129,140,248,0.6);
+        margin-left: 2px;
+        vertical-align: middle;
+        animation: blink 0.8s step-end infinite;
     }
+    
+    @keyframes blink { 50% { opacity: 0; } }
 
     /* ── GLASS CARD ─────────────────────────────────────────────── */
     .card {
@@ -368,11 +357,13 @@
 
     <!-- Header -->
     <div class="header">
-        <div style="display: flex; align-items: baseline; justify-content: center;">
+        <div style="display: flex; align-items: center; justify-content: center;">
             <div class="logo">ADS</div>
-            <div class="sig-header">by ViR@hitvin</div>
+            <div style="position: relative; width: 150px; height: 50px; margin-left: 0.5rem;">
+                <canvas id="sigCanvas" width="500" height="300" style="position: absolute; top: -50px; left: -50px; width: 250px; height: 150px; pointer-events: none;"></canvas>
+            </div>
         </div>
-        <div class="tagline">Together, no one walks alone</div>
+        <div class="tagline" id="tagline"><span class="cursor"></span></div>
     </div>
 
     <!-- Form Card -->
@@ -733,7 +724,151 @@
     });
 })();
 
-// (Tagline fade animation handled in CSS)
+// ══════════════════════════════════════════════════════════════════════
+// SIGNATURE PARTICLE EFFECT & TYPEWRITER TAGLINE
+// ══════════════════════════════════════════════════════════════════════
+const sigCanvas = document.getElementById('sigCanvas');
+const sCtx = sigCanvas.getContext('2d', { willReadFrequently: true });
+const cWidth = 250;
+const cHeight = 150;
+sCtx.scale(2, 2);
+
+let sParticles = [];
+let sigState = 'FORMED';
+
+function initSigParticles() {
+    sCtx.clearRect(0, 0, cWidth, cHeight);
+    sCtx.font = "600 24px 'Dancing Script'";
+    sCtx.textAlign = "left";
+    sCtx.textBaseline = "middle";
+    
+    const gradient = sCtx.createLinearGradient(50, 0, 200, 0);
+    gradient.addColorStop(0, "rgba(129,140,248,1)");
+    gradient.addColorStop(0.5, "rgba(196,181,253,1)");
+    gradient.addColorStop(1, "rgba(99,102,241,1)");
+    sCtx.fillStyle = gradient;
+    
+    // Draw text in the middle of our extended canvas
+    sCtx.fillText("by ViR@hitvin", 50, 75);
+    
+    const imgData = sCtx.getImageData(0, 0, sigCanvas.width, sigCanvas.height);
+    const data = imgData.data;
+    sParticles = [];
+    
+    for(let y = 0; y < sigCanvas.height; y += 4) {
+        for(let x = 0; x < sigCanvas.width; x += 4) {
+            const i = (y * sigCanvas.width + x) * 4;
+            if(data[i+3] > 40) { 
+                sParticles.push({
+                    ox: x/2, 
+                    oy: y/2,
+                    x: x/2,
+                    y: y/2,
+                    vx: 0,
+                    vy: 0,
+                    size: Math.random() * 1.5 + 0.5,
+                    color: `rgba(${data[i]}, ${data[i+1]}, ${data[i+2]}, ${data[i+3]/255})`
+                });
+            }
+        }
+    }
+}
+
+function drawParticleShape(ctx, x, y, size) {
+    if (size > 1.2) {
+        ctx.beginPath();
+        for (let j = 0; j < 6; j++) {
+            const angle = j * Math.PI / 3;
+            ctx.lineTo(x + size * Math.cos(angle), y + size * Math.sin(angle));
+        }
+        ctx.closePath();
+        ctx.fill();
+    } else {
+        ctx.fillRect(x, y, size, size);
+    }
+}
+
+function updateSigParticles() {
+    sCtx.clearRect(0, 0, cWidth, cHeight);
+    
+    let allReformed = true;
+    for(let i=0; i<sParticles.length; i++) {
+        let p = sParticles[i];
+        
+        if (sigState === 'BURSTING') {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vx *= 0.92;
+            p.vy *= 0.92;
+            // Float slowly in space
+            p.x += Math.sin(Date.now()*0.001 + p.ox)*0.4;
+            p.y += Math.cos(Date.now()*0.001 + p.oy)*0.4;
+        } else if (sigState === 'REFORMING') {
+            const dx = p.ox - p.x;
+            const dy = p.oy - p.y;
+            p.x += dx * 0.08;
+            p.y += dy * 0.08;
+            if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
+                allReformed = false;
+            }
+        }
+        
+        sCtx.fillStyle = p.color;
+        drawParticleShape(sCtx, p.x, p.y, p.size);
+    }
+    
+    if (sigState === 'REFORMING' && allReformed) {
+        sigState = 'FORMED';
+        sParticles.forEach(p => { p.x = p.ox; p.y = p.oy; });
+    }
+    
+    requestAnimationFrame(updateSigParticles);
+}
+
+document.fonts.ready.then(() => {
+    initSigParticles();
+    requestAnimationFrame(updateSigParticles);
+});
+
+(function typewriter() {
+    const el   = document.getElementById('tagline');
+    const text = 'Together, no one walks alone';
+    let   i    = 0;
+    let   dir  = 1;  
+    let   wait = 0;
+
+    function tick() {
+        if (wait > 0) { wait--; setTimeout(tick, 80); return; }
+
+        if (dir === 1) {
+            i++;
+            el.innerHTML = text.slice(0, i) + '<span class="cursor"></span>';
+            if (i === text.length) { 
+                wait = 35; // wait at the end
+                dir = -1; 
+                sigState = 'BURSTING'; 
+                sParticles.forEach(p => {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = Math.random() * 6 + 2;
+                    p.vx = Math.cos(angle) * speed;
+                    p.vy = Math.sin(angle) * speed;
+                });
+            }
+            setTimeout(tick, 60 + Math.random() * 40);
+        } else {
+            i--;
+            el.innerHTML = text.slice(0, i) + '<span class="cursor"></span>';
+            if (i === 0) { 
+                wait = 15; // wait at the start
+                dir = 1; 
+                sigState = 'REFORMING'; 
+            }
+            setTimeout(tick, 30);
+        }
+    }
+
+    setTimeout(tick, 600);
+})();
 
 // ══════════════════════════════════════════════════════════════════════
 // LOCAL STORAGE
