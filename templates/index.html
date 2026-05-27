@@ -69,60 +69,31 @@
         filter: drop-shadow(0 0 30px rgba(129,140,248,0.25));
     }
 
-    .sig-header {
+    .tagline-handwritten {
         font-family: 'Dancing Script', cursive;
-        font-size: clamp(1.4rem, 4vw, 2.5rem);
+        font-size: clamp(1.4rem, 4vw, 2.2rem);
         font-weight: 600;
-        background: linear-gradient(135deg, #7ac5b4, #4169e1, #6b3b5b); /* Opal Green, Royal Blue, Cadbury Silk Maroon */
+        margin-top: 0.5rem;
+        background: linear-gradient(135deg, #7ac5b4, #4169e1, #6b3b5b); /* Opal Green, Royal Blue, Cadbury Maroon */
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
-        margin-left: 0.8rem;
-    }
-
-    .tagline {
-        margin-top: 0.9rem;
-        font-size: 1.1rem;
-        font-weight: 500;
-        letter-spacing: 0.12em;
-        font-style: italic;
-        background: linear-gradient(135deg, #7ac5b4, #4169e1, #6b3b5b);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        min-height: 1.5em;
         display: flex;
+        justify-content: center;
         align-items: center;
+        min-height: 2em;
     }
     
-    .tagline .cursor {
+    .tagline-handwritten .cursor {
         display: inline-block;
-        width: 2px;
-        height: 1.1em;
+        width: 3px;
+        height: 1.2em;
         background: rgba(65, 105, 225, 0.8);
-        margin-left: 4px;
+        margin-left: 6px;
         animation: blink 0.8s step-end infinite;
     }
     
     @keyframes blink { 50% { opacity: 0; } }
-
-    /* Premium Evaporation Effect */
-    .text-wrapper {
-        transition: opacity 1.8s cubic-bezier(0.4, 0, 0.2, 1), 
-                    filter 1.8s cubic-bezier(0.4, 0, 0.2, 1), 
-                    transform 1.8s cubic-bezier(0.4, 0, 0.2, 1);
-        will-change: opacity, filter, transform;
-    }
-
-    .text-wrapper.evaporate {
-        opacity: 0;
-        filter: blur(12px);
-        transform: scale(1.08) translateY(-4px); /* Dissolve and expand into the atmosphere */
-    }
-
-    .no-transition {
-        transition: none !important;
-    }
 
     /* ── GLASS CARD ─────────────────────────────────────────────── */
     .card {
@@ -356,8 +327,6 @@
         background: #111;
         display: none;
     }
-
-    /* Removed signature css since it moved to header */
 
     /* ── ANIMATIONS ─────────────────────────────────────────────── */
     @keyframes fadeDown {
@@ -761,66 +730,168 @@
 })();
 
 // ══════════════════════════════════════════════════════════════════════
-// ATMOSPHERIC EVAPORATION ENGINE & TYPEWRITER TAGLINE
+// CLAUDE-STYLE TYPEWRITER (WITH ERASING)
 // ══════════════════════════════════════════════════════════════════════
-const sigWrapper = document.getElementById('sigWrapper');
-const tagWrapper = document.getElementById('tagWrapper');
 const tagTextEl = document.getElementById('tagText');
 const fullTagline = "Together, no one walks alone";
-
-let loopState = 'TYPING';
 let typeIndex = 0;
+let isDeleting = false;
 
-function animateLoop() {
-    if (loopState === 'TYPING') {
+function typeWriter() {
+    if (!isDeleting && typeIndex <= fullTagline.length) {
+        tagTextEl.innerText = fullTagline.substring(0, typeIndex);
         typeIndex++;
-        tagTextEl.innerText = fullTagline.slice(0, typeIndex);
-        
-        if (typeIndex >= fullTagline.length) {
-            loopState = 'FORMED';
-            setTimeout(animateLoop, 1500); // Read time before bursting
-        } else {
-            setTimeout(animateLoop, 40 + Math.random() * 50); // Typewriter speed
-        }
-    } else if (loopState === 'FORMED') {
-        loopState = 'BURSTING';
-        // Add evaporate class to merge into the background
-        sigWrapper.classList.add('evaporate');
-        tagWrapper.classList.add('evaporate');
-        
-        setTimeout(() => {
-            loopState = 'DISPERSED';
-            setTimeout(animateLoop, 800); // Float in atmosphere
-        }, 1800); // Wait for CSS transition to complete
-    } else if (loopState === 'DISPERSED') {
-        loopState = 'REFORMING';
-        // Remove evaporate class to reform perfectly
-        sigWrapper.classList.remove('evaporate');
-        tagWrapper.classList.remove('evaporate');
-        
-        setTimeout(() => {
-            loopState = 'HIDDEN';
-            setTimeout(animateLoop, 200); // Pause briefly once formed
-        }, 1800); // Wait for CSS transition to complete
-    } else if (loopState === 'HIDDEN') {
-        // Tagline vanishes instantly to restart typing
-        tagWrapper.classList.add('no-transition');
-        tagTextEl.innerText = "";
+        setTimeout(typeWriter, 80 + Math.random() * 40);
+    } else if (isDeleting && typeIndex >= 0) {
+        tagTextEl.innerText = fullTagline.substring(0, typeIndex);
+        typeIndex--;
+        setTimeout(typeWriter, 40);
+    }
+    
+    if (typeIndex > fullTagline.length) {
+        isDeleting = true;
+        setTimeout(typeWriter, 3000); // pause when fully typed
+    } else if (typeIndex < 0) {
+        isDeleting = false;
         typeIndex = 0;
-        
-        // Wait a frame to remove the no-transition so future fades work
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                tagWrapper.classList.remove('no-transition');
-                loopState = 'TYPING';
-                setTimeout(animateLoop, 400); // Wait before starting typing again
-            });
-        });
+        setTimeout(typeWriter, 1000); // pause before restart
+    }
+}
+setTimeout(typeWriter, 500);
+
+// ══════════════════════════════════════════════════════════════════════
+// COMET SIGNATURE PARTICLE SYSTEM
+// ══════════════════════════════════════════════════════════════════════
+const cCanvas = document.getElementById('cometCanvas');
+const cCtx = cCanvas.getContext('2d');
+
+function resizeCometCanvas() {
+    cCanvas.width = window.innerWidth;
+    cCanvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeCometCanvas);
+resizeCometCanvas();
+
+let comets = [];
+let cometState = 'FORMING';
+
+function getCometColor(x, width) {
+    const ratio = x / width;
+    if (ratio < 0.5) {
+        // Opal Green to Royal Blue
+        const r = Math.floor(122 + (65 - 122) * (ratio / 0.5));
+        const g = Math.floor(197 + (105 - 197) * (ratio / 0.5));
+        const b = Math.floor(180 + (225 - 180) * (ratio / 0.5));
+        return `rgba(${r}, ${g}, ${b}, 0.7)`;
+    } else {
+        // Royal Blue to Cadbury Maroon
+        const r = Math.floor(65 + (107 - 65) * ((ratio - 0.5) / 0.5));
+        const g = Math.floor(105 + (59 - 105) * ((ratio - 0.5) / 0.5));
+        const b = Math.floor(225 + (91 - 225) * ((ratio - 0.5) / 0.5));
+        return `rgba(${r}, ${g}, ${b}, 0.7)`;
     }
 }
 
-// Start loop
-setTimeout(animateLoop, 800);
+function initComets() {
+    const tempCanvas = document.createElement('canvas');
+    const tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true });
+    tempCanvas.width = cCanvas.width;
+    tempCanvas.height = cCanvas.height;
+    
+    const fontSize = Math.max(30, window.innerWidth * 0.05);
+    tempCtx.font = `600 ${fontSize}px 'Dancing Script'`;
+    tempCtx.textAlign = "center";
+    tempCtx.textBaseline = "middle";
+    tempCtx.fillStyle = "white";
+    
+    // Position signature in the space below the main card
+    tempCtx.fillText("by ViR@hitvin", tempCanvas.width / 2, tempCanvas.height * 0.9); 
+    
+    const imgData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+    const data = imgData.data;
+    
+    comets = [];
+    const step = window.innerWidth < 768 ? 5 : 4; 
+    
+    for (let y = 0; y < tempCanvas.height; y += step) {
+        for (let x = 0; x < tempCanvas.width; x += step) {
+            const i = (y * tempCanvas.width + x) * 4;
+            if (data[i+3] > 100) { 
+                const startAngle = Math.random() * Math.PI * 2;
+                const dist = Math.random() * Math.max(tempCanvas.width, tempCanvas.height);
+                comets.push({
+                    ox: x, oy: y,
+                    tx: x, ty: y,
+                    x: x + Math.cos(startAngle) * dist,
+                    y: y + Math.sin(startAngle) * dist,
+                    vx: 0, vy: 0,
+                    history: [],
+                    color: getCometColor(x, tempCanvas.width)
+                });
+            }
+        }
+    }
+}
+
+function animateComets() {
+    cCtx.clearRect(0, 0, cCanvas.width, cCanvas.height);
+    cCtx.lineWidth = 1.2;
+    
+    comets.forEach(c => {
+        const dx = c.tx - c.x;
+        const dy = c.ty - c.y;
+        
+        c.vx += dx * 0.0006;
+        c.vy += dy * 0.0006;
+        c.vx *= 0.92;
+        c.vy *= 0.92;
+        
+        c.history.push({x: c.x, y: c.y});
+        if (c.history.length > 12) c.history.shift(); 
+        
+        c.x += c.vx;
+        c.y += c.vy;
+        
+        if (c.history.length > 1) {
+            cCtx.strokeStyle = c.color;
+            cCtx.beginPath();
+            cCtx.moveTo(c.history[0].x, c.history[0].y);
+            for (let i = 1; i < c.history.length; i++) {
+                cCtx.lineTo(c.history[i].x, c.history[i].y);
+            }
+            cCtx.lineTo(c.x, c.y);
+            cCtx.stroke();
+        }
+        
+        cCtx.fillStyle = "#fff";
+        cCtx.fillRect(c.x - 0.5, c.y - 0.5, 1, 1);
+    });
+    
+    requestAnimationFrame(animateComets);
+}
+
+document.fonts.ready.then(() => {
+    initComets();
+    animateComets();
+});
+
+setInterval(() => {
+    if (cometState === 'FORMING') {
+        cometState = 'DISPERSING';
+        comets.forEach(c => {
+            const angle = Math.random() * Math.PI * 2;
+            const dist = Math.random() * window.innerWidth + 500;
+            c.tx = c.ox + Math.cos(angle) * dist;
+            c.ty = c.oy + Math.sin(angle) * dist;
+        });
+    } else {
+        cometState = 'FORMING';
+        comets.forEach(c => {
+            c.tx = c.ox;
+            c.ty = c.oy;
+        });
+    }
+}, 8000);
 
 // ══════════════════════════════════════════════════════════════════════
 // LOCAL STORAGE
