@@ -6,99 +6,9 @@
     <title>ADS Assignment Document System</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-        /* ─── CSS Variables for Theming ───────────────────────────────────── */
-        :root {
-            --primary: #007AFF;
-            --primary-light: #409CFF;
-            --primary-dark: #0055CC;
-            --secondary: #5856D6;
-            --accent: #FF2D55;
-            --bg-start: #0a0a2e;
-            --bg-end: #1a1a4e;
-            --card-bg: rgba(255, 255, 255, 0.08);
-            --card-border: rgba(255, 255, 255, 0.12);
-            --text: #FFFFFF;
-            --text-secondary: rgba(255, 255, 255, 0.7);
-            --glass-bg: rgba(255, 255, 255, 0.06);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            --blur: 20px;
-            --theme-label: 'Default';
-            --success: #34C759;
-            --warning: #FF9500;
-        }
-
-        [data-theme="sunset"] {
-            --primary: #FF6B6B;
-            --primary-light: #FF8E8E;
-            --primary-dark: #CC4444;
-            --secondary: #FFA94D;
-            --accent: #FFD93D;
-            --bg-start: #2d1b0e;
-            --bg-end: #4a2c15;
-            --card-bg: rgba(255, 107, 107, 0.08);
-            --card-border: rgba(255, 107, 107, 0.15);
-            --glass-bg: rgba(255, 107, 107, 0.06);
-            --glass-border: rgba(255, 107, 107, 0.1);
-        }
-
-        [data-theme="emerald"] {
-            --primary: #34C759;
-            --primary-light: #5EDB7A;
-            --primary-dark: #248A3D;
-            --secondary: #30D158;
-            --accent: #FFD60A;
-            --bg-start: #0a2e1a;
-            --bg-end: #1a4e2e;
-            --card-bg: rgba(52, 199, 89, 0.08);
-            --card-border: rgba(52, 199, 89, 0.15);
-            --glass-bg: rgba(52, 199, 89, 0.06);
-            --glass-border: rgba(52, 199, 89, 0.1);
-        }
-
-        [data-theme="midnight"] {
-            --primary: #5E5CE6;
-            --primary-light: #7D7BEE;
-            --primary-dark: #3F3DA6;
-            --secondary: #AF52DE;
-            --accent: #FF375F;
-            --bg-start: #0a0a1e;
-            --bg-end: #0d0d2b;
-            --card-bg: rgba(94, 92, 230, 0.08);
-            --card-border: rgba(94, 92, 230, 0.15);
-            --glass-bg: rgba(94, 92, 230, 0.06);
-            --glass-border: rgba(94, 92, 230, 0.1);
-        }
-
-        [data-theme="rose"] {
-            --primary: #FF2D55;
-            --primary-light: #FF5E7A;
-            --primary-dark: #CC0033;
-            --secondary: #FF6482;
-            --accent: #FFD60A;
-            --bg-start: #2e0a1a;
-            --bg-end: #4e1525;
-            --card-bg: rgba(255, 45, 85, 0.08);
-            --card-border: rgba(255, 45, 85, 0.15);
-            --glass-bg: rgba(255, 45, 85, 0.06);
-            --glass-border: rgba(255, 45, 85, 0.1);
-        }
-
-        [data-theme="ocean"] {
-            --primary: #00C7BE;
-            --primary-light: #33D6CF;
-            --primary-dark: #009E96;
-            --secondary: #64D2FF;
-            --accent: #FFD60A;
-            --bg-start: #0a1e2e;
-            --bg-end: #0d2b3d;
-            --card-bg: rgba(0, 199, 190, 0.08);
-            --card-border: rgba(0, 199, 190, 0.15);
-            --glass-bg: rgba(0, 199, 190, 0.06);
-            --glass-border: rgba(0, 199, 190, 0.1);
-        }
-
-        /* ─── Reset & Base ────────────────────────────────────────────────── */
+        /* ═════════════════════════════════════════════════════════════════════
+           RESET & BASE
+           ═════════════════════════════════════════════════════════════════════ */
         *, *::before, *::after {
             margin: 0;
             padding: 0;
@@ -107,15 +17,91 @@
 
         body {
             font-family: -apple-system, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            color: var(--text);
+            color: #ffffff;
             overflow-x: hidden;
             min-height: 100vh;
-            background: var(--bg-start);
+            background: #0a0a1a;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
         }
 
-        /* ─── Three.js Canvas ─────────────────────────────────────────────── */
+        /* ═════════════════════════════════════════════════════════════════════
+           RAINBOW AUTO-FLOW ANIMATIONS
+           ═════════════════════════════════════════════════════════════════════ */
+
+        /* — Rainbow color flow for headings */
+        @property --rainbow-angle {
+            syntax: '<angle>';
+            initial-value: 0deg;
+            inherits: false;
+        }
+
+        .rainbow-text {
+            --rainbow-angle: 0deg;
+            background: linear-gradient(
+                var(--rainbow-angle),
+                #ff6b6b, #ff9f43, #feca57, #48dbfb,
+                #0abde3, #a29bfe, #fd79a8, #ff6b6b
+            );
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: rainbowFlow 6s linear infinite;
+        }
+
+        @keyframes rainbowFlow {
+            0%   { --rainbow-angle: 0deg; }
+            100% { --rainbow-angle: 360deg; }
+        }
+
+        /* — Subtle hue rotation on accent elements */
+        .hue-flow {
+            animation: hueShift 8s linear infinite;
+        }
+
+        @keyframes hueShift {
+            0%   { filter: hue-rotate(0deg); }
+            100% { filter: hue-rotate(360deg); }
+        }
+
+        /* — Shimmering wave effect on glass card borders */
+        .border-wave {
+            position: relative;
+        }
+
+        .border-wave::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 22px;
+            background: conic-gradient(
+                from var(--rainbow-angle),
+                #ff6b6b, #ff9f43, #feca57, #48dbfb,
+                #0abde3, #a29bfe, #fd79a8, #ff6b6b
+            );
+            z-index: -1;
+            animation: rainbowFlow 6s linear infinite;
+            opacity: 0.5;
+            transition: opacity 0.4s;
+        }
+
+        .border-wave:hover::before {
+            opacity: 0.8;
+        }
+
+        /* — Pulsing glow keyframes */
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 20px rgba(255, 107, 107, 0.15); }
+            25%      { box-shadow: 0 0 20px rgba(72, 219, 251, 0.15); }
+            50%      { box-shadow: 0 0 20px rgba(162, 155, 254, 0.15); }
+            75%      { box-shadow: 0 0 20px rgba(254, 202, 87, 0.15); }
+        }
+
+        /* ═════════════════════════════════════════════════════════════════════
+           THREE.JS CANVAS
+           ═════════════════════════════════════════════════════════════════════ */
         #space-canvas {
             position: fixed;
             top: 0;
@@ -123,23 +109,38 @@
             width: 100%;
             height: 100%;
             z-index: 0;
+            cursor: pointer;
         }
 
-        /* ─── Stars overlay ───────────────────────────────────────────────── */
-        .stars-overlay {
+        /* Click hint — shows briefly then fades */
+        .click-hint {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 3;
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 20px;
+            padding: 0.5rem 1.2rem;
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.4);
+            animation: hintFade 6s ease forwards;
             pointer-events: none;
-            background: radial-gradient(ellipse at 20% 50%, rgba(255,255,255,0.03) 0%, transparent 50%),
-                        radial-gradient(ellipse at 80% 20%, rgba(255,255,255,0.02) 0%, transparent 50%),
-                        radial-gradient(ellipse at 50% 80%, rgba(100,100,255,0.03) 0%, transparent 50%);
+            white-space: nowrap;
         }
 
-        /* ─── Content Layout ──────────────────────────────────────────────── */
+        @keyframes hintFade {
+            0%   { opacity: 1; transform: translateX(-50%) translateY(0); }
+            70%  { opacity: 1; transform: translateX(-50%) translateY(0); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+        }
+
+        /* ═════════════════════════════════════════════════════════════════════
+           CONTENT LAYOUT
+           ═════════════════════════════════════════════════════════════════════ */
         .content-wrapper {
             position: relative;
             z-index: 2;
@@ -147,232 +148,210 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 2rem 1.5rem;
+            padding: 2.5rem 1.5rem 4rem;
         }
 
-        /* ─── Theme Toggle ────────────────────────────────────────────────── */
-        .theme-toggle {
-            position: fixed;
-            top: 1.5rem;
-            right: 1.5rem;
-            z-index: 100;
-            display: flex;
-            gap: 0.5rem;
-            background: var(--glass-bg);
-            backdrop-filter: blur(var(--blur));
-            -webkit-backdrop-filter: blur(var(--blur));
-            border: 1px solid var(--glass-border);
-            border-radius: 25px;
-            padding: 0.5rem 0.75rem;
-            box-shadow: var(--shadow);
-        }
-
-        .theme-dot {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            border: 2px solid transparent;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            position: relative;
-        }
-
-        .theme-dot:hover {
-            transform: scale(1.2);
-        }
-
-        .theme-dot.active {
-            border-color: white;
-            transform: scale(1.15);
-            box-shadow: 0 0 12px rgba(255,255,255,0.3);
-        }
-
-        .theme-dot::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            top: calc(100% + 8px);
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.8);
-            color: white;
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 11px;
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s;
-        }
-
-        .theme-dot:hover::after {
-            opacity: 1;
-        }
-
-        /* ─── Header ──────────────────────────────────────────────────────── */
+        /* ═════════════════════════════════════════════════════════════════════
+           HEADER
+           ═════════════════════════════════════════════════════════════════════ */
         .header {
             text-align: center;
             margin-bottom: 2.5rem;
             animation: fadeInDown 0.8s ease-out;
-            position: relative;
+            max-width: 700px;
         }
 
         .header-badge {
             display: inline-block;
-            background: var(--glass-bg);
-            backdrop-filter: blur(var(--blur));
-            -webkit-backdrop-filter: blur(var(--blur));
-            border: 1px solid var(--glass-border);
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.08);
             border-radius: 20px;
-            padding: 0.35rem 1rem;
-            font-size: 0.75rem;
+            padding: 0.4rem 1.1rem;
+            font-size: 0.72rem;
             letter-spacing: 0.15em;
             text-transform: uppercase;
-            color: var(--text-secondary);
-            margin-bottom: 1rem;
+            color: rgba(255,255,255,0.55);
+            margin-bottom: 1.25rem;
         }
 
         .header h1 {
-            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-size: clamp(2rem, 5.5vw, 3.8rem);
             font-weight: 700;
-            letter-spacing: -0.02em;
-            background: linear-gradient(135deg, var(--primary-light), var(--primary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-shadow: none;
-            margin-bottom: 0.5rem;
+            letter-spacing: -0.025em;
+            line-height: 1.1;
+            margin-bottom: 1rem;
         }
 
-        .header p {
+        .header h1 .accent {
+            display: block;
+            font-weight: 800;
+        }
+
+        .tagline {
             font-size: 1.05rem;
-            color: var(--text-secondary);
+            color: rgba(255,255,255,0.6);
             font-weight: 400;
-            letter-spacing: 0.01em;
+            letter-spacing: 0.015em;
+            line-height: 1.6;
+            max-width: 520px;
+            margin: 0 auto;
+            font-style: italic;
         }
 
-        /* ─── Glass Card ──────────────────────────────────────────────────── */
+        .tagline .highlight {
+            color: rgba(255,255,255,0.85);
+            font-weight: 500;
+        }
+
+        /* ═════════════════════════════════════════════════════════════════════
+           GLASS CARD
+           ═════════════════════════════════════════════════════════════════════ */
         .glass-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(var(--blur));
-            -webkit-backdrop-filter: blur(var(--blur));
-            border: 1px solid var(--card-border);
-            border-radius: 20px;
-            padding: 2rem;
-            box-shadow: var(--shadow);
+            position: relative;
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 22px;
+            padding: 2.25rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08);
             width: 100%;
-            max-width: 560px;
-            transition: all 0.4s ease;
+            max-width: 520px;
             animation: fadeInUp 0.6s ease-out;
+            transition: all 0.5s ease;
         }
 
         .glass-card:hover {
-            border-color: rgba(255,255,255,0.2);
-            box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+            border-color: rgba(255,255,255,0.15);
+            box-shadow: 0 12px 48px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
         }
 
-        /* ─── Form Styles ─────────────────────────────────────────────────── */
+        /* ═════════════════════════════════════════════════════════════════════
+           FORM STYLES
+           ═════════════════════════════════════════════════════════════════════ */
         .form-group {
             margin-bottom: 1.5rem;
         }
 
         .form-label {
             display: block;
-            font-size: 0.8rem;
+            font-size: 0.72rem;
             font-weight: 600;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.08em;
             text-transform: uppercase;
-            color: var(--text-secondary);
+            color: rgba(255,255,255,0.5);
             margin-bottom: 0.5rem;
+            transition: color 0.3s;
         }
 
         .form-input {
             width: 100%;
-            padding: 0.85rem 1rem;
-            background: rgba(255,255,255,0.06);
-            border: 1.5px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            color: var(--text);
+            padding: 0.85rem 1.1rem;
+            background: rgba(255,255,255,0.05);
+            border: 1.5px solid rgba(255,255,255,0.08);
+            border-radius: 13px;
+            color: #ffffff;
             font-family: -apple-system, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
             font-size: 1rem;
-            transition: all 0.3s ease;
+            letter-spacing: 0.01em;
+            transition: all 0.35s ease;
             outline: none;
         }
 
         .form-input::placeholder {
-            color: rgba(255,255,255,0.3);
+            color: rgba(255,255,255,0.22);
+            font-weight: 400;
         }
 
         .form-input:focus {
-            border-color: var(--primary);
-            background: rgba(255,255,255,0.1);
-            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15);
+            border-color: rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.08);
+            box-shadow: 0 0 0 4px rgba(255,255,255,0.05);
+        }
+
+        .form-input:focus + .form-label {
+            color: rgba(255,255,255,0.7);
         }
 
         .form-input.error {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(255, 45, 85, 0.15);
+            border-color: #ff6b6b;
+            box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.1);
         }
 
         .form-error {
-            font-size: 0.8rem;
-            color: var(--accent);
+            font-size: 0.78rem;
+            color: #ff6b6b;
             margin-top: 0.35rem;
             display: none;
+            letter-spacing: 0.01em;
         }
 
         .form-input.error + .form-error {
             display: block;
         }
 
-        /* ─── Generate Button ─────────────────────────────────────────────── */
-        .btn-generate {
+        /* ═════════════════════════════════════════════════════════════════════
+           SUBMIT BUTTON
+           ═════════════════════════════════════════════════════════════════════ */
+        .btn-submit {
             width: 100%;
             padding: 1rem;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
             border: none;
             border-radius: 14px;
             color: white;
             font-family: -apple-system, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
             font-size: 1.05rem;
             font-weight: 600;
-            letter-spacing: 0.01em;
+            letter-spacing: 0.02em;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             position: relative;
             overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: linear-gradient(135deg, #ff6b6b, #ff9f43, #feca57, #48dbfb, #a29bfe, #fd79a8);
+            background-size: 300% 300%;
+            animation: gradientShift 4s ease infinite;
         }
 
-        .btn-generate::before {
+        @keyframes gradientShift {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .btn-submit::before {
             content: '';
             position: absolute;
             top: 0;
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
-            transition: left 0.5s ease;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.6s ease;
         }
 
-        .btn-generate:hover::before {
+        .btn-submit:hover::before {
             left: 100%;
         }
 
-        .btn-generate:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 122, 255, 0.35);
+        .btn-submit:hover {
+            transform: translateY(-2px) scale(1.01);
+            box-shadow: 0 10px 30px rgba(255, 107, 107, 0.3);
         }
 
-        .btn-generate:active {
-            transform: translateY(0);
+        .btn-submit:active {
+            transform: translateY(0) scale(0.98);
         }
 
-        .btn-generate:disabled {
+        .btn-submit:disabled {
             opacity: 0.6;
             cursor: not-allowed;
             transform: none !important;
+            box-shadow: none !important;
         }
 
-        .btn-generate .spinner {
+        .btn-submit .spinner {
             display: none;
             width: 20px;
             height: 20px;
@@ -383,19 +362,21 @@
             margin: 0 auto;
         }
 
-        .btn-generate.loading .btn-text {
+        .btn-submit.loading .btn-text {
             display: none;
         }
 
-        .btn-generate.loading .spinner {
+        .btn-submit.loading .spinner {
             display: block;
         }
 
-        /* ─── Result Section ──────────────────────────────────────────────── */
+        /* ═════════════════════════════════════════════════════════════════════
+           RESULT SECTION
+           ═════════════════════════════════════════════════════════════════════ */
         .result-section {
             width: 100%;
             max-width: 900px;
-            margin-top: 2rem;
+            margin-top: 2.5rem;
             display: none;
             animation: fadeInUp 0.6s ease-out;
         }
@@ -406,23 +387,23 @@
 
         .result-actions {
             display: flex;
-            gap: 1rem;
+            gap: 0.8rem;
             margin-bottom: 1.5rem;
             flex-wrap: wrap;
         }
 
         .btn-download {
             flex: 1;
-            min-width: 180px;
-            padding: 0.85rem 1.5rem;
-            border: 1.5px solid var(--glass-border);
+            min-width: 160px;
+            padding: 0.8rem 1.2rem;
+            border: 1.5px solid rgba(255,255,255,0.1);
             border-radius: 14px;
-            background: var(--glass-bg);
+            background: rgba(255,255,255,0.05);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            color: var(--text);
+            color: #ffffff;
             font-family: -apple-system, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -434,41 +415,95 @@
         }
 
         .btn-download:hover {
-            background: var(--card-bg);
-            border-color: var(--primary);
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.2);
             transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(0, 122, 255, 0.2);
         }
 
         .btn-download .icon {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
         }
 
         .btn-download.pdf {
-            border-color: var(--accent);
+            border-color: rgba(255, 107, 107, 0.3);
         }
 
         .btn-download.pdf:hover {
-            border-color: var(--accent);
-            box-shadow: 0 4px 15px rgba(255, 45, 85, 0.2);
+            border-color: rgba(255, 107, 107, 0.5);
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.15);
         }
 
-        .btn-download.success {
-            border-color: var(--success);
+        .btn-download.print {
+            border-color: rgba(72, 219, 251, 0.3);
         }
 
-        .btn-download.success:hover {
-            border-color: var(--success);
-            box-shadow: 0 4px 15px rgba(52, 199, 89, 0.2);
+        .btn-download.print:hover {
+            border-color: rgba(72, 219, 251, 0.5);
+            box-shadow: 0 4px 15px rgba(72, 219, 251, 0.15);
         }
 
-        /* ─── Preview Container ────────────────────────────────────────────── */
+        /* — Success Message — */
+        .success-message {
+            text-align: center;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1rem;
+            background: rgba(72, 219, 251, 0.08);
+            border: 1px solid rgba(72, 219, 251, 0.15);
+            border-radius: 14px;
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.85);
+            display: none;
+            line-height: 1.5;
+        }
+
+        .success-message.visible {
+            display: block;
+        }
+
+        .success-message .check {
+            color: #48dbfb;
+            font-weight: 600;
+        }
+
+        .success-message strong {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .success-message .detail {
+            color: rgba(255,255,255,0.5);
+            font-size: 0.82rem;
+            display: block;
+            margin-top: 0.25rem;
+        }
+
+        /* — Error Message — */
+        .error-message {
+            text-align: center;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1rem;
+            background: rgba(255, 107, 107, 0.08);
+            border: 1px solid rgba(255, 107, 107, 0.15);
+            border-radius: 14px;
+            font-size: 0.9rem;
+            color: #ff6b6b;
+            display: none;
+            line-height: 1.5;
+        }
+
+        .error-message.visible {
+            display: block;
+        }
+
+        /* ═════════════════════════════════════════════════════════════════════
+           PREVIEW CONTAINER
+           ═════════════════════════════════════════════════════════════════════ */
         .preview-container {
-            background: white;
+            background: #ffffff;
             border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-            max-height: 600px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+            max-height: 650px;
             overflow-y: auto;
         }
 
@@ -493,31 +528,29 @@
             padding: 2.5rem;
             color: #1d1d1f;
             font-family: 'Times New Roman', Georgia, serif;
-            line-height: 1.6;
+            line-height: 1.65;
+            font-size: 11pt;
         }
 
         .preview-inner h1 {
-            font-size: 1.8rem;
+            font-size: 1.6rem;
             color: #1d1d1f;
             font-weight: 700;
             margin-bottom: 0.75rem;
-            font-family: 'Times New Roman', Georgia, serif;
         }
 
         .preview-inner h2 {
-            font-size: 1.5rem;
+            font-size: 1.35rem;
             color: #1d1d1f;
             font-weight: 700;
             margin-bottom: 0.6rem;
-            font-family: 'Times New Roman', Georgia, serif;
         }
 
         .preview-inner h3 {
-            font-size: 1.25rem;
+            font-size: 1.15rem;
             color: #1d1d1f;
             font-weight: 700;
             margin-bottom: 0.5rem;
-            font-family: 'Times New Roman', Georgia, serif;
         }
 
         .preview-inner p {
@@ -527,20 +560,20 @@
 
         .preview-inner p.strong {
             font-weight: 700;
-            font-size: 1.05rem;
+            font-size: 1rem;
             color: #1d1d1f;
         }
 
         .preview-inner table {
             width: 100%;
             border-collapse: collapse;
-            margin: 1rem 0;
-            font-size: 0.9rem;
+            margin: 0.75rem 0;
+            font-size: 9pt;
         }
 
         .preview-inner table td {
             border: 1px solid #ddd;
-            padding: 0.6rem 0.8rem;
+            padding: 0.5rem 0.7rem;
             vertical-align: top;
             color: #333;
         }
@@ -551,158 +584,32 @@
             color: #1d1d1f;
         }
 
-        /* Preview Header */
+        /* Preview Header Bar */
         .preview-header {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            padding: 1rem 1.5rem;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            padding: 0.9rem 1.5rem;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
         }
 
         .preview-header span {
-            color: white;
-            font-weight: 600;
-            font-size: 0.9rem;
+            color: rgba(255,255,255,0.85);
+            font-weight: 500;
+            font-size: 0.85rem;
             letter-spacing: 0.02em;
         }
 
         .preview-header .badge {
-            background: rgba(255,255,255,0.2);
-            padding: 0.25rem 0.75rem;
+            background: rgba(255,255,255,0.08);
+            padding: 0.2rem 0.7rem;
             border-radius: 20px;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.5);
         }
 
-        /* ─── Success Message ─────────────────────────────────────────────── */
-        .success-message {
-            text-align: center;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            background: rgba(52, 199, 89, 0.1);
-            border: 1px solid rgba(52, 199, 89, 0.2);
-            border-radius: 12px;
-            font-size: 0.9rem;
-            color: var(--success);
-            display: none;
-        }
-
-        .success-message.visible {
-            display: block;
-        }
-
-        /* ─── Error Message ───────────────────────────────────────────────── */
-        .error-message {
-            text-align: center;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            background: rgba(255, 45, 85, 0.1);
-            border: 1px solid rgba(255, 45, 85, 0.2);
-            border-radius: 12px;
-            font-size: 0.9rem;
-            color: var(--accent);
-            display: none;
-        }
-
-        .error-message.visible {
-            display: block;
-        }
-
-        /* ─── Animations ──────────────────────────────────────────────────── */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(25px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-
-        /* ─── Responsive ──────────────────────────────────────────────────── */
-        @media (max-width: 640px) {
-            .content-wrapper {
-                padding: 1rem;
-            }
-            .glass-card {
-                padding: 1.5rem;
-                border-radius: 16px;
-            }
-            .theme-toggle {
-                top: 0.75rem;
-                right: 0.75rem;
-                padding: 0.4rem 0.5rem;
-            }
-            .theme-dot {
-                width: 24px;
-                height: 24px;
-            }
-            .result-actions {
-                flex-direction: column;
-            }
-            .btn-download {
-                min-width: unset;
-            }
-            .preview-inner {
-                padding: 1.5rem;
-            }
-            .preview-inner table {
-                font-size: 0.75rem;
-            }
-            .preview-inner table td {
-                padding: 0.4rem 0.5rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .header h1 {
-                font-size: 1.6rem;
-            }
-            .glass-card {
-                padding: 1.25rem;
-            }
-        }
-
-        /* ─── Scrollbar for main page ─────────────────────────────────────── */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.15);
-            border-radius: 3px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(255,255,255,0.25);
-        }
-
-        /* ─── Loading Skeleton for Preview ────────────────────────────────── */
+        /* Preview Loading */
         .preview-loading {
             display: none;
             padding: 3rem;
@@ -716,47 +623,111 @@
         }
 
         .preview-loading .pulse {
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             border: 3px solid #eee;
-            border-top-color: var(--primary);
+            border-top-color: #a29bfe;
             border-radius: 50%;
             animation: spin 0.7s linear infinite;
-            margin: 0 auto 1rem;
+            margin: 0 auto 0.75rem;
         }
 
         .preview-loading span {
             color: #999;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+        }
+
+        /* ═════════════════════════════════════════════════════════════════════
+           ANIMATIONS
+           ═════════════════════════════════════════════════════════════════════ */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(25px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ═════════════════════════════════════════════════════════════════════
+           SCROLLBAR (Global)
+           ═════════════════════════════════════════════════════════════════════ */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        /* ═════════════════════════════════════════════════════════════════════
+           RESPONSIVE
+           ═════════════════════════════════════════════════════════════════════ */
+        @media (max-width: 640px) {
+            .content-wrapper { padding: 1.25rem 1rem 3rem; }
+            .glass-card { padding: 1.5rem; border-radius: 18px; }
+            .header h1 { font-size: 1.7rem; }
+            .result-actions { flex-direction: column; }
+            .btn-download { min-width: unset; }
+            .preview-inner { padding: 1.5rem; }
+            .preview-inner table { font-size: 8pt; }
+            .preview-inner table td { padding: 0.35rem 0.4rem; }
+            .tagline { font-size: 0.92rem; }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 { font-size: 1.4rem; }
+            .glass-card { padding: 1.25rem; }
+            .header-badge { font-size: 0.62rem; }
+        }
+
+        @media print {
+            .btn-submit, .btn-download, .result-actions, .preview-header,
+            .header-badge, #space-canvas, .success-message, .error-message { display: none !important; }
+            .result-section { margin-top: 0; }
+            .preview-container { max-height: none; overflow: visible; border-radius: 0; box-shadow: none; }
+            .preview-inner { padding: 0; color: #000; }
+            .content-wrapper { padding: 0; }
+            body { background: white; }
         }
     </style>
 </head>
 <body>
-    <!-- Three.js Canvas -->
+    <!-- Three.js Canvas (background + bubbles) -->
     <canvas id="space-canvas"></canvas>
-    <div class="stars-overlay"></div>
 
-    <!-- Theme Toggle -->
-    <div class="theme-toggle" id="themeToggle">
-        <div class="theme-dot active" style="background: linear-gradient(135deg, #007AFF, #5856D6)" data-theme="default" data-tooltip="Default"></div>
-        <div class="theme-dot" style="background: linear-gradient(135deg, #FF6B6B, #FFA94D)" data-theme="sunset" data-tooltip="Sunset"></div>
-        <div class="theme-dot" style="background: linear-gradient(135deg, #34C759, #30D158)" data-theme="emerald" data-tooltip="Emerald"></div>
-        <div class="theme-dot" style="background: linear-gradient(135deg, #5E5CE6, #AF52DE)" data-theme="midnight" data-tooltip="Midnight"></div>
-        <div class="theme-dot" style="background: linear-gradient(135deg, #FF2D55, #FF6482)" data-theme="rose" data-tooltip="Rose"></div>
-        <div class="theme-dot" style="background: linear-gradient(135deg, #00C7BE, #64D2FF)" data-theme="ocean" data-tooltip="Ocean"></div>
-    </div>
+    <!-- Click hint -->
+    <div class="click-hint">✦ Click the bubbles to burst them!</div>
 
     <!-- Content -->
     <div class="content-wrapper">
         <!-- Header -->
         <div class="header">
-            <div class="header-badge">✨ Academic Document System v1.0</div>
-            <h1>ADS Assignment<br>Document System</h1>
-            <p>Generate your personalized academic documents with AI</p>
+            <div class="header-badge">✦ Academic Document System v2.0</div>
+            <h1>
+                <span class="rainbow-text">ADS Assignment</span>
+                <span class="accent rainbow-text">Document System</span>
+            </h1>
+            <p class="tagline">
+                "In the Spirit of <span class="highlight">Brotherhood</span>, 
+                We Build the Future of Our <span class="highlight">Nation</span> —<br>
+                One Document at a Time."
+            </p>
         </div>
 
         <!-- Form Card -->
-        <div class="glass-card" id="formCard">
+        <div class="glass-card border-wave" id="formCard">
             <form id="assignmentForm" autocomplete="off">
                 <div class="form-group">
                     <label class="form-label" for="studentName">Full Name</label>
@@ -764,8 +735,9 @@
                         type="text"
                         id="studentName"
                         class="form-input"
-                        placeholder="e.g., John Appleseed"
+                        placeholder="e.g., Akshit"
                         required
+                        autofocus
                     />
                     <div class="form-error">Please enter your full name</div>
                 </div>
@@ -794,7 +766,7 @@
                     <div class="form-error">Please enter your course name</div>
                 </div>
 
-                <button type="submit" class="btn-generate" id="btnGenerate">
+                <button type="submit" class="btn-submit" id="btnSubmit">
                     <span class="btn-text">✦ Submit</span>
                     <div class="spinner"></div>
                 </button>
@@ -804,13 +776,14 @@
         <!-- Result Section -->
         <div class="result-section" id="resultSection">
             <div class="success-message" id="successMessage">
-                ✓ Assignment generated for <strong id="displayName"></strong>
-                <span id="displayDetails"></span>
+                <span class="check">✓</span> Assignment generated for
+                <strong id="displayName"></strong>
+                <span class="detail" id="displayDetails"></span>
             </div>
             <div class="error-message" id="errorMessage"></div>
 
             <div class="result-actions">
-                <a class="btn-download docx" id="downloadDocx" href="#" download>
+                <a class="btn-download" id="downloadDocx" href="#" download>
                     <span class="icon">📄</span>
                     Download DOCX
                 </a>
@@ -818,9 +791,9 @@
                     <span class="icon">📕</span>
                     Download PDF
                 </a>
-                <button class="btn-download success" id="printBtn" onclick="window.print()">
+                <button class="btn-download print" id="printBtn" onclick="window.print()">
                     <span class="icon">🖨️</span>
-                    Print / Save as PDF
+                    Print / Save PDF
                 </button>
             </div>
 
@@ -840,12 +813,12 @@
 
     <script>
         // ═════════════════════════════════════════════════════════════════════
-        // Three.js Space Background
+        // THREE.JS — SPACE BACKGROUND WITH BUBBLES & BURST EFFECT
         // ═════════════════════════════════════════════════════════════════════
         (function initSpace() {
             const canvas = document.getElementById('space-canvas');
             const scene = new THREE.Scene();
-            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+            const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 2000);
             const renderer = new THREE.WebGLRenderer({
                 canvas,
                 alpha: true,
@@ -853,29 +826,33 @@
             });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.sortObjects = true;
 
             // ─── Stars ─────────────────────────────────────────────────────
             const starsGeometry = new THREE.BufferGeometry();
-            const starsCount = 3000;
+            const starsCount = 4000;
             const starPositions = new Float32Array(starsCount * 3);
             const starSizes = new Float32Array(starsCount);
             const starColors = new Float32Array(starsCount * 3);
 
             for (let i = 0; i < starsCount; i++) {
-                const radius = Math.random() * 800 + 100;
+                const radius = Math.random() * 900 + 100;
                 const theta = Math.random() * Math.PI * 2;
                 const phi = Math.acos(2 * Math.random() - 1);
 
-                starPositions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+                starPositions[i * 3]     = radius * Math.sin(phi) * Math.cos(theta);
                 starPositions[i * 3 + 1] = radius * Math.cos(phi);
                 starPositions[i * 3 + 2] = radius * Math.sin(phi) * Math.sin(theta);
+                starSizes[i] = Math.random() * 2 + 0.3;
 
-                starSizes[i] = Math.random() * 2 + 0.5;
-
-                const colorVal = 0.7 + Math.random() * 0.3;
-                starColors[i * 3] = colorVal;
-                starColors[i * 3 + 1] = colorVal;
-                starColors[i * 3 + 2] = colorVal + Math.random() * 0.2;
+                const tint = Math.random();
+                if (tint < 0.33) {
+                    starColors[i * 3] = 1; starColors[i * 3 + 1] = 0.9; starColors[i * 3 + 2] = 0.7;
+                } else if (tint < 0.66) {
+                    starColors[i * 3] = 0.7; starColors[i * 3 + 1] = 0.8; starColors[i * 3 + 2] = 1;
+                } else {
+                    starColors[i * 3] = 1; starColors[i * 3 + 1] = 1; starColors[i * 3 + 2] = 1;
+                }
             }
 
             starsGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
@@ -883,10 +860,10 @@
             starsGeometry.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
 
             const starMaterial = new THREE.PointsMaterial({
-                size: 1.5,
+                size: 1.8,
                 vertexColors: true,
                 transparent: true,
-                opacity: 0.9,
+                opacity: 0.85,
                 sizeAttenuation: true,
                 blending: THREE.AdditiveBlending
             });
@@ -897,51 +874,191 @@
             // ─── Crystals (Icosahedrons) ───────────────────────────────────
             const crystals = [];
             const crystalColors = [
-                0x007AFF, 0x5856D6, 0xFF2D55, 0x34C759,
-                0xFF9500, 0xAF52DE, 0x00C7BE, 0xFFD60A
+                0xff6b6b, 0xff9f43, 0xfeca57, 0x48dbfb,
+                0x0abde3, 0xa29bfe, 0xfd79a8, 0x00d2d3
             ];
 
-            for (let i = 0; i < 25; i++) {
-                const size = Math.random() * 0.6 + 0.2;
+            for (let i = 0; i < 20; i++) {
+                const size = Math.random() * 0.5 + 0.15;
                 const geometry = new THREE.IcosahedronGeometry(size, 0);
                 const color = crystalColors[Math.floor(Math.random() * crystalColors.length)];
                 const material = new THREE.MeshPhysicalMaterial({
                     color: color,
                     emissive: color,
-                    emissiveIntensity: 0.15,
-                    metalness: 0.3,
-                    roughness: 0.1,
+                    emissiveIntensity: 0.12,
+                    metalness: 0.2,
+                    roughness: 0.15,
                     transparent: true,
-                    opacity: 0.4 + Math.random() * 0.3,
-                    wireframe: Math.random() > 0.5,
+                    opacity: 0.35 + Math.random() * 0.25,
+                    wireframe: Math.random() > 0.6,
                 });
 
                 const crystal = new THREE.Mesh(geometry, material);
-
-                const radius = Math.random() * 350 + 50;
+                const radius = Math.random() * 400 + 60;
                 const theta = Math.random() * Math.PI * 2;
                 const phi = Math.acos(2 * Math.random() - 1);
 
-                crystal.position.x = radius * Math.sin(phi) * Math.cos(theta);
-                crystal.position.y = radius * Math.cos(phi);
-                crystal.position.z = radius * Math.sin(phi) * Math.sin(theta);
+                crystal.position.set(
+                    radius * Math.sin(phi) * Math.cos(theta),
+                    radius * Math.cos(phi),
+                    radius * Math.sin(phi) * Math.sin(theta)
+                );
 
                 crystal.userData = {
-                    rotSpeed: { x: (Math.random() - 0.5) * 0.02, y: (Math.random() - 0.5) * 0.02 },
-                    floatSpeed: Math.random() * 0.005 + 0.002,
-                    floatAmp: Math.random() * 5 + 2,
-                    floatOffset: Math.random() * Math.PI * 2
+                    rotSpeed: { x: (Math.random() - 0.5) * 0.015, y: (Math.random() - 0.5) * 0.015 },
+                    floatSpeed: Math.random() * 0.004 + 0.001,
+                    floatAmp: Math.random() * 4 + 1.5,
+                    floatOffset: Math.random() * Math.PI * 2,
+                    baseY: crystal.position.y
                 };
 
                 scene.add(crystal);
                 crystals.push(crystal);
             }
 
+            // ─── BUBBLES (clickable spheres) ───────────────────────────────
+            const bubbles = [];
+            const burstParticles = [];
+            const bubbleColors = [
+                0xff6b6b, 0xff9f43, 0xfeca57, 0x48dbfb,
+                0x0abde3, 0xa29bfe, 0xfd79a8, 0x00d2d3,
+                0x6c5ce7, 0xfdcb6e, 0xe17055, 0x00cec9
+            ];
+
+            function createBubble() {
+                const size = Math.random() * 0.8 + 0.35;
+                const geometry = new THREE.SphereGeometry(size, 24, 24);
+                const color = bubbleColors[Math.floor(Math.random() * bubbleColors.length)];
+                const material = new THREE.MeshPhysicalMaterial({
+                    color: color,
+                    emissive: color,
+                    emissiveIntensity: 0.05,
+                    metalness: 0.1,
+                    roughness: 0.05,
+                    transparent: true,
+                    opacity: 0.5 + Math.random() * 0.3,
+                    clearcoat: 0.3,
+                    clearcoatRoughness: 0.2,
+                });
+
+                const bubble = new THREE.Mesh(geometry, material);
+
+                // Position in a ring/sphere around the center, but not too close to camera
+                const radius = Math.random() * 250 + 80;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
+
+                bubble.position.set(
+                    radius * Math.sin(phi) * Math.cos(theta),
+                    radius * Math.cos(phi),
+                    radius * Math.sin(phi) * Math.sin(theta) - 50
+                );
+
+                bubble.userData = {
+                    rotSpeed: (Math.random() - 0.5) * 0.01,
+                    floatSpeed: Math.random() * 0.003 + 0.001,
+                    floatAmp: Math.random() * 3 + 1,
+                    floatOffset: Math.random() * Math.PI * 2,
+                    basePos: bubble.position.clone(),
+                    size: size,
+                    color: color,
+                    opacity: material.opacity,
+                    alive: true
+                };
+
+                return bubble;
+            }
+
+            function spawnBubble() {
+                const bubble = createBubble();
+                scene.add(bubble);
+                bubbles.push(bubble);
+                return bubble;
+            }
+
+            // Spawn initial bubbles
+            for (let i = 0; i < 18; i++) {
+                spawnBubble();
+            }
+
+            // ─── Burst Effect ──────────────────────────────────────────────
+            function createBurst(position, color, count) {
+                const count_ = count || 40;
+                const colorObj = new THREE.Color(color);
+
+                for (let i = 0; i < count_; i++) {
+                    const size = Math.random() * 0.15 + 0.03;
+                    const geometry = new THREE.SphereGeometry(size, 6, 6);
+
+                    const material = new THREE.MeshBasicMaterial({
+                        color: color,
+                        transparent: true,
+                        opacity: 1
+                    });
+
+                    const particle = new THREE.Mesh(geometry, material);
+                    particle.position.copy(position);
+
+                    // Random direction
+                    const dir = new THREE.Vector3(
+                        (Math.random() - 0.5) * 2,
+                        (Math.random() - 0.5) * 2,
+                        (Math.random() - 0.5) * 2
+                    ).normalize();
+
+                    const speed = Math.random() * 3 + 1.5;
+
+                    particle.userData = {
+                        velocity: dir.multiplyScalar(speed),
+                        life: 0,
+                        maxLife: 40 + Math.random() * 30,
+                        rotationSpeed: (Math.random() - 0.5) * 0.2
+                    };
+
+                    scene.add(particle);
+                    burstParticles.push(particle);
+                }
+            }
+
+            // ─── Raycaster for Bubble Click ────────────────────────────────
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+
+            canvas.addEventListener('click', (event) => {
+                const rect = canvas.getBoundingClientRect();
+                mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+                mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+                raycaster.setFromCamera(mouse, camera);
+
+                // Check intersection with bubbles
+                const intersects = raycaster.intersectObjects(bubbles);
+
+                if (intersects.length > 0) {
+                    const hit = intersects[0].object;
+
+                    // Create burst effect
+                    createBurst(hit.position.clone(), hit.userData.color, 45);
+
+                    // Remove the bubble
+                    scene.remove(hit);
+                    hit.geometry.dispose();
+                    hit.material.dispose();
+                    const idx = bubbles.indexOf(hit);
+                    if (idx !== -1) bubbles.splice(idx, 1);
+
+                    // Spawn 2 new bubbles after a short delay
+                    setTimeout(() => {
+                        if (bubbles.length < 25) {
+                            spawnBubble();
+                            spawnBubble();
+                        }
+                    }, 200);
+                }
+            });
+
             // ─── Shooting Stars ────────────────────────────────────────────
             const shootingStars = [];
-            const shootGeo = new THREE.BufferGeometry();
-            const shootPos = new Float32Array(6); // 2 points
-            shootGeo.setAttribute('position', new THREE.BufferAttribute(shootPos, 3));
 
             function createShootingStar() {
                 const startX = (Math.random() - 0.5) * 800;
@@ -954,8 +1071,17 @@
                     (Math.random() - 0.5) * 0.5
                 ).normalize();
 
-                const length = Math.random() * 30 + 20;
-                const speed = Math.random() * 4 + 2;
+                const length = Math.random() * 25 + 15;
+                const speed = Math.random() * 3.5 + 1.5;
+
+                const positions = new Float32Array(6);
+                positions[0] = startX; positions[1] = startY; positions[2] = startZ;
+                positions[3] = startX + direction.x * length;
+                positions[4] = startY + direction.y * length;
+                positions[5] = startZ + direction.z * length;
+
+                const geo = new THREE.BufferGeometry();
+                geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
                 const material = new THREE.LineBasicMaterial({
                     color: 0xffffff,
@@ -964,17 +1090,6 @@
                     blending: THREE.AdditiveBlending
                 });
 
-                const positions = new Float32Array(6);
-                positions[0] = startX;
-                positions[1] = startY;
-                positions[2] = startZ;
-                positions[3] = startX + direction.x * length;
-                positions[4] = startY + direction.y * length;
-                positions[5] = startZ + direction.z * length;
-
-                const geo = new THREE.BufferGeometry();
-                geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-
                 const star = new THREE.Line(geo, material);
                 star.userData = {
                     startPos: new THREE.Vector3(startX, startY, startZ),
@@ -982,7 +1097,7 @@
                     speed: speed,
                     length: length,
                     life: 0,
-                    maxLife: 40 + Math.random() * 30
+                    maxLife: 35 + Math.random() * 25
                 };
 
                 return star;
@@ -994,10 +1109,7 @@
                 shootingStars.push(star);
             }
 
-            // Spawn stars periodically
-            let starTimer = 0;
-
-            // ─── Camera Position ───────────────────────────────────────────
+            // ─── Camera ────────────────────────────────────────────────────
             camera.position.set(0, 0, 500);
 
             // ─── Mouse tracking ────────────────────────────────────────────
@@ -1009,26 +1121,40 @@
 
             // ─── Animation Loop ────────────────────────────────────────────
             let time = 0;
+            let starTimer = 0;
 
             function animate() {
                 time += 0.01;
                 requestAnimationFrame(animate);
 
                 // Rotate stars slowly
-                stars.rotation.y += 0.0003;
-                stars.rotation.x += 0.0001;
+                stars.rotation.y += 0.00025;
+                stars.rotation.x += 0.00008;
 
                 // Animate crystals
                 crystals.forEach((crystal) => {
                     crystal.rotation.x += crystal.userData.rotSpeed.x;
                     crystal.rotation.y += crystal.userData.rotSpeed.y;
-                    const offset = Math.sin(time * crystal.userData.floatSpeed + crystal.userData.floatOffset) * crystal.userData.floatAmp;
-                    crystal.position.y += Math.sin(time * crystal.userData.floatSpeed + crystal.userData.floatOffset) * 0.01;
+                    const floatOffset = Math.sin(time * crystal.userData.floatSpeed + crystal.userData.floatOffset) * crystal.userData.floatAmp;
+                    crystal.position.y = crystal.userData.baseY + floatOffset;
+                });
+
+                // Animate bubbles
+                bubbles.forEach((bubble) => {
+                    if (!bubble.userData.alive) return;
+                    bubble.rotation.x += bubble.userData.rotSpeed;
+                    bubble.rotation.y += bubble.userData.rotSpeed * 0.7;
+
+                    const floatOffset = Math.sin(time * bubble.userData.floatSpeed + bubble.userData.floatOffset) * bubble.userData.floatAmp;
+                    bubble.position.y = bubble.userData.basePos.y + floatOffset;
+
+                    // Subtle pulsing opacity
+                    bubble.material.opacity = bubble.userData.opacity + Math.sin(time * 0.5 + bubble.userData.floatOffset) * 0.08;
                 });
 
                 // Shooting stars
                 starTimer++;
-                if (starTimer > 80 + Math.random() * 120) {
+                if (starTimer > 100 + Math.random() * 150) {
                     spawnShootingStar();
                     starTimer = 0;
                 }
@@ -1039,21 +1165,17 @@
                     data.life++;
 
                     const progress = data.life / data.maxLife;
-                    const positions = star.geometry.attributes.position.array;
+                    const pos = star.geometry.attributes.position.array;
 
-                    // Move start position
-                    positions[0] = data.startPos.x + data.direction.x * data.speed * data.life;
-                    positions[1] = data.startPos.y + data.direction.y * data.speed * data.life;
-                    positions[2] = data.startPos.z + data.direction.z * data.speed * data.life;
-
-                    // End position
-                    positions[3] = positions[0] + data.direction.x * data.length;
-                    positions[4] = positions[1] + data.direction.y * data.length;
-                    positions[5] = positions[2] + data.direction.z * data.length;
+                    pos[0] = data.startPos.x + data.direction.x * data.speed * data.life;
+                    pos[1] = data.startPos.y + data.direction.y * data.speed * data.life;
+                    pos[2] = data.startPos.z + data.direction.z * data.speed * data.life;
+                    pos[3] = pos[0] + data.direction.x * data.length;
+                    pos[4] = pos[1] + data.direction.y * data.length;
+                    pos[5] = pos[2] + data.direction.z * data.length;
 
                     star.geometry.attributes.position.needsUpdate = true;
 
-                    // Fade in/out
                     if (progress < 0.2) {
                         star.material.opacity = progress / 0.2;
                     } else if (progress > 0.7) {
@@ -1070,9 +1192,44 @@
                     }
                 }
 
-                // Subtle camera sway based on mouse
-                camera.position.x = mouseX * 30;
-                camera.position.y = -mouseY * 20;
+                // Update burst particles
+                for (let i = burstParticles.length - 1; i >= 0; i--) {
+                    const p = burstParticles[i];
+                    const ud = p.userData;
+                    ud.life++;
+
+                    const progress = ud.life / ud.maxLife;
+
+                    // Move particle
+                    p.position.x += ud.velocity.x;
+                    p.position.y += ud.velocity.y;
+                    p.position.z += ud.velocity.z;
+
+                    // Slow down
+                    ud.velocity.multiplyScalar(0.97);
+
+                    // Rotate
+                    p.rotation.x += ud.rotationSpeed;
+                    p.rotation.y += ud.rotationSpeed;
+
+                    // Fade out
+                    p.material.opacity = 1 - progress;
+
+                    // Scale down
+                    const scale = 1 - progress * 0.5;
+                    p.scale.set(scale, scale, scale);
+
+                    if (ud.life >= ud.maxLife) {
+                        scene.remove(p);
+                        p.geometry.dispose();
+                        p.material.dispose();
+                        burstParticles.splice(i, 1);
+                    }
+                }
+
+                // Subtle camera sway
+                camera.position.x += (mouseX * 25 - camera.position.x) * 0.02;
+                camera.position.y += (-mouseY * 15 - camera.position.y) * 0.02;
                 camera.lookAt(0, 0, 0);
 
                 renderer.render(scene, camera);
@@ -1088,27 +1245,15 @@
             });
 
             // Spawn initial shooting stars
-            setTimeout(() => { spawnShootingStar(); }, 500);
-            setTimeout(() => { spawnShootingStar(); }, 2000);
+            setTimeout(() => { spawnShootingStar(); }, 800);
+            setTimeout(() => { spawnShootingStar(); }, 2500);
         })();
 
         // ═════════════════════════════════════════════════════════════════════
-        // Theme Switcher
-        // ═════════════════════════════════════════════════════════════════════
-        document.querySelectorAll('.theme-dot').forEach(dot => {
-            dot.addEventListener('click', () => {
-                document.querySelectorAll('.theme-dot').forEach(d => d.classList.remove('active'));
-                dot.classList.add('active');
-                const theme = dot.dataset.theme;
-                document.documentElement.setAttribute('data-theme', theme === 'default' ? '' : theme);
-            });
-        });
-
-        // ═════════════════════════════════════════════════════════════════════
-        // Form & API Integration
+        // FORM & API INTEGRATION
         // ═════════════════════════════════════════════════════════════════════
         const form = document.getElementById('assignmentForm');
-        const btnGenerate = document.getElementById('btnGenerate');
+        const btnSubmit = document.getElementById('btnSubmit');
         const nameInput = document.getElementById('studentName');
         const pidInput = document.getElementById('studentPid');
         const courseInput = document.getElementById('studentCourse');
@@ -1119,29 +1264,16 @@
         const downloadPdf = document.getElementById('downloadPdf');
         const successMessage = document.getElementById('successMessage');
         const displayName = document.getElementById('displayName');
+        const displayDetails = document.getElementById('displayDetails');
         const errorMessage = document.getElementById('errorMessage');
 
-        // Input validation
         function validateInputs() {
             let valid = true;
-            if (!nameInput.value.trim()) {
-                nameInput.classList.add('error');
-                valid = false;
-            } else {
-                nameInput.classList.remove('error');
-            }
-            if (!pidInput.value.trim()) {
-                pidInput.classList.add('error');
-                valid = false;
-            } else {
-                pidInput.classList.remove('error');
-            }
-            if (!courseInput.value.trim()) {
-                courseInput.classList.add('error');
-                valid = false;
-            } else {
-                courseInput.classList.remove('error');
-            }
+            [nameInput, pidInput, courseInput].forEach(inp => inp.classList.remove('error'));
+
+            if (!nameInput.value.trim()) { nameInput.classList.add('error'); valid = false; }
+            if (!pidInput.value.trim())  { pidInput.classList.add('error');  valid = false; }
+            if (!courseInput.value.trim()){ courseInput.classList.add('error'); valid = false; }
             return valid;
         }
 
@@ -1149,17 +1281,15 @@
         pidInput.addEventListener('input', () => pidInput.classList.remove('error'));
         courseInput.addEventListener('input', () => courseInput.classList.remove('error'));
 
-        // Form submission
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            // Hide previous errors before validation
             errorMessage.classList.remove('visible');
             successMessage.classList.remove('visible');
-            
+
             if (!validateInputs()) return;
 
-            btnGenerate.classList.add('loading');
-            btnGenerate.disabled = true;
+            btnSubmit.classList.add('loading');
+            btnSubmit.disabled = true;
             resultSection.classList.remove('visible');
 
             try {
@@ -1180,38 +1310,31 @@
                     return;
                 }
 
-                // Show success
                 displayName.textContent = data.studentName;
-                document.getElementById('displayDetails').textContent = 
-                    ` | PID: ${data.studentPid} | Course: ${data.studentCourse}`;
+                displayDetails.textContent =
+                    `PID: ${data.studentPid} · Course: ${data.studentCourse}`;
                 successMessage.classList.add('visible');
 
-                // Set download links
                 downloadDocx.href = data.docxUrl;
                 downloadPdf.href = data.pdfUrl;
 
                 if (!data.pdfReady) {
-                    downloadPdf.style.opacity = '0.5';
-                    downloadPdf.title = 'PDF generation was not available - please download DOCX instead';
+                    downloadPdf.style.opacity = '0.4';
+                    downloadPdf.title = 'PDF not available — use DOCX or Print';
                 } else {
                     downloadPdf.style.opacity = '1';
                     downloadPdf.title = 'Download as PDF';
                 }
 
-                // Show preview
                 previewContent.innerHTML = data.previewHtml;
-
-                // Show result section
                 resultSection.classList.add('visible');
-
-                // Smooth scroll to result
                 resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
             } catch (err) {
                 showError('Network error. Please ensure the server is running.');
             } finally {
-                btnGenerate.classList.remove('loading');
-                btnGenerate.disabled = false;
+                btnSubmit.classList.remove('loading');
+                btnSubmit.disabled = false;
             }
         });
 

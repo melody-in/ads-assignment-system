@@ -38,3 +38,10 @@ _test_*.docx
 
 # Logs
 *.log
+
+# User document settings (keep template DOCX but not personal settings)
+documents/settings.json
+
+# Windows temp/lock files
+~$*.docx
+*~

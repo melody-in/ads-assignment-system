@@ -1,0 +1,6 @@
+{
+  "template": "YOUR_DOCUMENT.docx",
+  "findName": "Full name as it appears in your document",
+  "findPid": "PID number as it appears in your document",
+  "findCourse": "Course name as it appears in your document"
+}
