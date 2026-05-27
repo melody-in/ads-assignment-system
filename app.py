@@ -2,12 +2,15 @@ import os
 import sys
 import json
 import uuid
+import subprocess
+import shutil
 from flask import Flask, render_template, request, jsonify, send_file
 from flask_cors import CORS
 from docx import Document
-from fpdf import FPDF
 import io
 import time
+import copy
+import re
 
 app = Flask(__name__)
 CORS(app)
@@ -30,8 +33,7 @@ def load_settings():
         "template": "",
         "findName": "N. Akshit Vinay",
         "findPid": "25MSRSGIS001",
-        "findCourse": "M.Sc. GIS & Remote Sensing",
-        "findGender": "Male"
+        "findCourse": "M.Sc.  Remote Sensing & Gis"
     }
 
     if not os.path.exists(SETTINGS_PATH):
@@ -67,10 +69,8 @@ def find_template():
     docx_files = [f for f in os.listdir(DOCUMENTS_DIR)
                   if f.lower().endswith('.docx') and f != 'settings.json']
     if docx_files:
-        # Use the most recently modified one
         docx_files.sort(key=lambda f: os.path.getmtime(os.path.join(DOCUMENTS_DIR, f)), reverse=True)
         chosen = docx_files[0]
-        # Auto-update settings
         settings['template'] = chosen
         try:
             with open(SETTINGS_PATH, 'w') as f:
@@ -87,12 +87,74 @@ def find_template():
     return None
 
 
-# ─── DOCX Modification (Pure Find-and-Replace) ───────────────────────────────
+# ─── Robust Run-Aware Find-and-Replace ────────────────────────────────────────
 
-def modify_docx_template(student_name, student_pid, student_course, student_gender, output_path=None):
+def _replace_in_paragraph(paragraph, find_text, replace_text):
     """
-    Modify the DOCX template by performing a pure find-and-replace.
-    Only the EXACT strings specified in settings are replaced — nothing else changes.
+    Replace text across runs in a paragraph, preserving formatting.
+    Handles cases where the target text is split across multiple runs.
+    """
+    full_text = paragraph.text
+    if find_text not in full_text:
+        return False
+
+    # Build a map of character positions to runs
+    runs = paragraph.runs
+    if not runs:
+        return False
+
+    # Try simple run-by-run replacement first
+    for run in runs:
+        if find_text in run.text:
+            run.text = run.text.replace(find_text, replace_text)
+            return True
+
+    # If not found in a single run, the text is split across runs.
+    # We need to find which runs contain the target text and merge/replace.
+    char_positions = []  # (run_index, char_index_in_run)
+    for ri, run in enumerate(runs):
+        for ci, ch in enumerate(run.text):
+            char_positions.append((ri, ci))
+
+    # Find the start position of find_text in the full text
+    start_pos = full_text.find(find_text)
+    if start_pos < 0 or start_pos + len(find_text) > len(char_positions):
+        return False
+
+    end_pos = start_pos + len(find_text)
+
+    # Determine which runs are affected
+    start_run_idx = char_positions[start_pos][0]
+    end_run_idx = char_positions[end_pos - 1][0]
+    start_char = char_positions[start_pos][1]
+    end_char = char_positions[end_pos - 1][1]
+
+    # Put the replacement text in the first affected run, preserving its formatting
+    first_run = runs[start_run_idx]
+    before = first_run.text[:start_char]
+    first_run.text = before + replace_text
+
+    # If the text spans to the last affected run, keep the tail
+    if start_run_idx == end_run_idx:
+        first_run.text += runs[end_run_idx].text[end_char + 1:]
+    else:
+        last_run = runs[end_run_idx]
+        after = last_run.text[end_char + 1:]
+        first_run.text += after
+
+        # Clear intermediate and last runs
+        for ri in range(start_run_idx + 1, end_run_idx + 1):
+            runs[ri].text = ""
+
+    return True
+
+
+# ─── DOCX Modification ───────────────────────────────────────────────────────
+
+def modify_docx_template(student_name, student_pid, student_course, output_path=None):
+    """
+    Modify the DOCX template by replacing ONLY the Submitted By fields.
+    Preserves ALL original formatting.
     """
     template_path = find_template()
     if not template_path:
@@ -101,37 +163,39 @@ def modify_docx_template(student_name, student_pid, student_course, student_gend
     settings = load_settings()
     find_name = settings.get('findName', 'N. Akshit Vinay')
     find_pid = settings.get('findPid', '25MSRSGIS001')
-    find_course = settings.get('findCourse', 'M.Sc. GIS & Remote Sensing')
-    find_gender = settings.get('findGender', 'Male')
+    find_course = settings.get('findCourse', 'M.Sc.  Remote Sensing & Gis')
 
     doc = Document(template_path)
 
     # ── Replace in all paragraphs ──
     for para in doc.paragraphs:
-        for run in para.runs:
-            if find_name in run.text:
-                run.text = run.text.replace(find_name, student_name)
-            if find_pid in run.text:
-                run.text = run.text.replace(find_pid, student_pid)
-            if find_course in run.text:
-                run.text = run.text.replace(find_course, student_course)
-            if find_gender in run.text:
-                run.text = run.text.replace(find_gender, student_gender)
+        _replace_in_paragraph(para, find_name, student_name)
+        _replace_in_paragraph(para, find_pid, student_pid)
+        _replace_in_paragraph(para, find_course, student_course)
 
     # ── Replace in all tables ──
     for table in doc.tables:
         for row in table.rows:
             for cell in row.cells:
                 for para in cell.paragraphs:
-                    for run in para.runs:
-                        if find_name in run.text:
-                            run.text = run.text.replace(find_name, student_name)
-                        if find_pid in run.text:
-                            run.text = run.text.replace(find_pid, student_pid)
-                        if find_course in run.text:
-                            run.text = run.text.replace(find_course, student_course)
-                        if find_gender in run.text:
-                            run.text = run.text.replace(find_gender, student_gender)
+                    _replace_in_paragraph(para, find_name, student_name)
+                    _replace_in_paragraph(para, find_pid, student_pid)
+                    _replace_in_paragraph(para, find_course, student_course)
+
+    # ── Replace in headers and footers ──
+    for section in doc.sections:
+        for header in [section.header, section.first_page_header]:
+            if header and header.is_linked_to_previous is False:
+                for para in header.paragraphs:
+                    _replace_in_paragraph(para, find_name, student_name)
+                    _replace_in_paragraph(para, find_pid, student_pid)
+                    _replace_in_paragraph(para, find_course, student_course)
+        for footer in [section.footer, section.first_page_footer]:
+            if footer and footer.is_linked_to_previous is False:
+                for para in footer.paragraphs:
+                    _replace_in_paragraph(para, find_name, student_name)
+                    _replace_in_paragraph(para, find_pid, student_pid)
+                    _replace_in_paragraph(para, find_course, student_course)
 
     if output_path:
         doc.save(output_path)
@@ -143,196 +207,40 @@ def modify_docx_template(student_name, student_pid, student_course, student_gend
     return buf
 
 
-# ─── HTML Preview ────────────────────────────────────────────────────────────
+# ─── PDF Generation via LibreOffice ──────────────────────────────────────────
 
-def escape_html(text):
-    return (text.replace('&', '&amp;')
-                .replace('<', '&lt;')
-                .replace('>', '&gt;')
-                .replace('"', '&quot;'))
+def convert_docx_to_pdf(docx_path, output_dir):
+    """
+    Convert DOCX to PDF using LibreOffice headless.
+    This preserves ALL original formatting exactly.
+    """
+    try:
+        result = subprocess.run(
+            [
+                'libreoffice', '--headless', '--convert-to', 'pdf',
+                '--outdir', output_dir, docx_path
+            ],
+            capture_output=True, text=True, timeout=120
+        )
+        if result.returncode != 0:
+            print(f"[PDF] LibreOffice error: {result.stderr}", file=sys.stderr)
+            return None
 
-
-def docx_to_html_preview(docx_path):
-    """Extract DOCX content as HTML preview (preserves all original content)."""
-    doc = Document(docx_path)
-    html_parts = []
-
-    for para in doc.paragraphs:
-        text = para.text.strip()
-        if not text:
-            continue
-
-        style_name = para.style.name if para.style else ''
-        safe_text = escape_html(text)
-
-        if 'Heading 1' in style_name or 'Title' in style_name:
-            html_parts.append(f'<h1>{safe_text}</h1>')
-        elif 'Heading 2' in style_name:
-            html_parts.append(f'<h2>{safe_text}</h2>')
-        elif 'Heading 3' in style_name:
-            html_parts.append(f'<h3>{safe_text}</h3>')
-        else:
-            is_bold = any(run.bold for run in para.runs if run.text.strip())
-            if is_bold and len(text) < 100:
-                html_parts.append(f'<p class="strong">{safe_text}</p>')
-            else:
-                html_parts.append(f'<p>{safe_text}</p>')
-
-    for table in doc.tables:
-        html_parts.append('<table>')
-        for row in table.rows:
-            html_parts.append('<tr>')
-            for cell in row.cells:
-                cell_text = cell.text.strip()
-                html_parts.append(f'<td>{escape_html(cell_text) if cell_text else ""}</td>')
-            html_parts.append('</tr>')
-        html_parts.append('</table>')
-
-    return '\n'.join(html_parts)
-
-
-# ─── PDF Generation ──────────────────────────────────────────────────────────
-
-def find_unicode_font():
-    """Find a Unicode-capable font (prefer Times New Roman for academic docs)."""
-    win_fonts = r'C:\Windows\Fonts'
-    linux_fonts = '/usr/share/fonts'
-
-    candidates = [
-        # Windows - Times New Roman preferred
-        (os.path.join(win_fonts, 'times.ttf'), 'TimesNewRoman'),
-        (os.path.join(win_fonts, 'timesbd.ttf'), 'TimesNewRoman-Bold'),
-        (os.path.join(win_fonts, 'timesi.ttf'), 'TimesNewRoman-Italic'),
-        # Windows fallbacks
-        (os.path.join(win_fonts, 'arial.ttf'), 'Arial'),
-        (os.path.join(win_fonts, 'Calibri.ttf'), 'Calibri'),
-        # Linux fallbacks
-        (os.path.join(linux_fonts, 'truetype/dejavu/DejaVuSans.ttf'), 'DejaVuSans'),
-        '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
-    ]
-
-    for candidate in candidates:
-        if isinstance(candidate, tuple):
-            fpath, fname = candidate
-        else:
-            fpath = candidate
-            fname = None
-        if os.path.exists(fpath):
-            return fpath, fname or os.path.splitext(os.path.basename(fpath))[0]
-
-    return None, None
-
-
-def find_bold_font(font_dir, base_name):
-    """Try to find a bold variant of a font file."""
-    bold_variants = [
-        base_name.replace('.ttf', 'bd.ttf'),
-        base_name.replace('.ttf', 'b.ttf'),
-        base_name.replace('.ttf', '-Bold.ttf'),
-        base_name.replace('Sans.ttf', 'Sans-Bold.ttf'),
-        base_name.replace('SansCondensed.ttf', 'SansCondensed-Bold.ttf'),
-        base_name.replace('times.ttf', 'timesbd.ttf'),
-        base_name.replace('times.ttf', 'Times_New_Roman_Bold.ttf'),
-        base_name.replace('Regular.ttf', 'Bold.ttf'),
-    ]
-    for bv in bold_variants:
-        bp = os.path.join(font_dir, bv)
-        if os.path.exists(bp):
-            return bp
-    return None
-
-
-def generate_pdf_from_docx(docx_path, output_path):
-    """Generate a PDF from the DOCX file using Times New Roman."""
-    doc = Document(docx_path)
-    pdf = FPDF()
-    pdf.set_auto_page_break(auto=True, margin=20)
-
-    # Find a Unicode font (prefer Times New Roman)
-    font_path, family_name = find_unicode_font()
-    font_name = 'Helvetica'
-
-    if font_path:
-        try:
-            pdf.add_font('DocFont', '', font_path, uni=True)
-
-            # Try to find bold variant
-            bold_path = find_bold_font(os.path.dirname(font_path), os.path.basename(font_path))
-            if bold_path:
-                try:
-                    pdf.add_font('DocFont', 'B', bold_path, uni=True)
-                    font_name = 'DocFont'
-                except Exception:
-                    font_name = 'DocFont'
-            else:
-                font_name = 'DocFont'
-        except Exception as e:
-            print(f"[PDF] Font load error: {e}", file=sys.stderr)
-
-    pdf.add_page()
-
-    # Process paragraphs
-    for para in doc.paragraphs:
-        text = para.text.strip()
-        if not text:
-            continue
-
-        style_name = para.style.name if para.style else ''
-        is_bold = any(run.bold for run in para.runs if run.text.strip())
-
-        if 'Title' in style_name:
-            pdf.set_font(font_name, 'B' if font_name == 'DocFont' else '', 16)
-        elif 'Heading 1' in style_name:
-            pdf.set_font(font_name, 'B' if font_name == 'DocFont' else '', 14)
-        elif 'Heading 2' in style_name:
-            pdf.set_font(font_name, 'B' if font_name == 'DocFont' else '', 12)
-        elif 'Heading 3' in style_name:
-            pdf.set_font(font_name, 'B' if font_name == 'DocFont' else '', 11)
-        elif is_bold:
-            pdf.set_font(font_name, 'B' if font_name == 'DocFont' else '', 10)
-        else:
-            pdf.set_font(font_name, '', 10)
-
-        try:
-            pdf.multi_cell(0, 5.5, text)
-            pdf.ln(1.5)
-        except Exception:
-            try:
-                safe_text = text.encode('utf-8', errors='replace').decode('utf-8')
-                pdf.multi_cell(0, 5.5, safe_text)
-                pdf.ln(1.5)
-            except Exception:
-                pass
-
-    # Process tables
-    for table in doc.tables:
-        if not table.rows:
-            continue
-        if pdf.get_y() > pdf.h - 40:
-            pdf.add_page()
-
-        col_count = max(len(table.columns), 1)
-        col_width = 190 / col_count
-
-        for ri, row in enumerate(table.rows):
-            is_header = (ri == 0)
-            bold_style = 'B' if font_name == 'DocFont' and is_header else ''
-
-            for cell in row.cells:
-                text = cell.text.strip()[:200]
-                try:
-                    pdf.set_font(font_name, bold_style, 7.5)
-                    pdf.cell(col_width, 5, text, border=1)
-                except Exception:
-                    try:
-                        safe_text = text.encode('utf-8', errors='replace').decode('utf-8')
-                        pdf.cell(col_width, 5, safe_text, border=1)
-                    except Exception:
-                        pass
-            pdf.ln()
-
-    pdf.output(output_path)
-    return output_path
+        # LibreOffice outputs the PDF with the same base name
+        base_name = os.path.splitext(os.path.basename(docx_path))[0]
+        pdf_path = os.path.join(output_dir, base_name + '.pdf')
+        if os.path.exists(pdf_path) and os.path.getsize(pdf_path) > 0:
+            return pdf_path
+        return None
+    except FileNotFoundError:
+        print("[PDF] LibreOffice not found. Install it for PDF generation.", file=sys.stderr)
+        return None
+    except subprocess.TimeoutExpired:
+        print("[PDF] LibreOffice conversion timed out.", file=sys.stderr)
+        return None
+    except Exception as e:
+        print(f"[PDF] Conversion error: {e}", file=sys.stderr)
+        return None
 
 
 # ─── Routes ──────────────────────────────────────────────────────────────────
@@ -342,14 +250,11 @@ def index():
     global _cleanup_done
     if not _cleanup_done:
         _cleanup_old_files()
-
-        # Check template exists
         tmpl = find_template()
         if tmpl:
             print(f"[OK] Template found: {tmpl}", file=sys.stderr)
         else:
             print(f"[WARN] No DOCX template found. Place a .docx file in the 'documents/' folder.", file=sys.stderr)
-
         _cleanup_done = True
     return render_template('index.html')
 
@@ -371,60 +276,48 @@ def generate_assignment():
     student_name = data.get('studentName', '').strip()
     student_pid = data.get('studentPid', '').strip()
     student_course = data.get('studentCourse', '').strip()
-    student_gender = data.get('studentGender', '').strip()
 
-    if not student_name or not student_pid or not student_course or not student_gender:
-        return jsonify({'error': 'Please provide student name, PID, course name, and gender.'}), 400
+    if not student_name or not student_pid or not student_course:
+        return jsonify({'error': 'Please provide your name, PID, and program.'}), 400
 
     file_id = uuid.uuid4().hex[:12]
     docx_path = os.path.join(OUTPUT_DIR, f'assignment_{file_id}.docx')
-    pdf_path = os.path.join(OUTPUT_DIR, f'assignment_{file_id}.pdf')
 
     try:
-        # Check template
         tmpl = find_template()
         if not tmpl:
             return jsonify({'error': 'No DOCX template found. Place a .docx file in the "documents/" folder.'}), 400
 
-        modify_docx_template(student_name, student_pid, student_course, student_gender, docx_path)
+        modify_docx_template(student_name, student_pid, student_course, docx_path)
 
-        pdf_ready = False
-        try:
-            generate_pdf_from_docx(docx_path, pdf_path)
-            if os.path.exists(pdf_path) and os.path.getsize(pdf_path) > 0:
-                pdf_ready = True
-        except Exception as e:
-            print(f"[PDF] Generation error: {e}", file=sys.stderr)
-
-        preview_html = docx_to_html_preview(docx_path)
+        # Convert DOCX to PDF using LibreOffice (preserves all formatting)
+        pdf_path = convert_docx_to_pdf(docx_path, OUTPUT_DIR)
+        pdf_ready = pdf_path is not None
 
         return jsonify({
             'success': True,
-            'previewHtml': preview_html,
-            'docxUrl': f'/download-docx/{file_id}',
-            'pdfUrl': f'/download-pdf/{file_id}',
+            'pdfUrl': f'/download-pdf/{file_id}' if pdf_ready else None,
+            'previewUrl': f'/preview-pdf/{file_id}' if pdf_ready else None,
             'pdfReady': pdf_ready,
             'studentName': student_name,
             'studentPid': student_pid,
-            'studentCourse': student_course,
-            'studentGender': student_gender
+            'studentCourse': student_course
         })
 
     except Exception as e:
         return jsonify({'error': f'An error occurred: {str(e)}'}), 500
 
 
-@app.route('/download-docx/<file_id>')
-def download_docx(file_id):
-    docx_path = os.path.join(OUTPUT_DIR, f'assignment_{file_id}.docx')
-    if not os.path.exists(docx_path):
-        return jsonify({'error': 'File not found'}), 404
+@app.route('/preview-pdf/<file_id>')
+def preview_pdf(file_id):
+    """Serve the PDF inline for iframe preview."""
+    pdf_path = os.path.join(OUTPUT_DIR, f'assignment_{file_id}.pdf')
+    if not os.path.exists(pdf_path):
+        return jsonify({'error': 'PDF not found.'}), 404
 
     return send_file(
-        docx_path,
-        as_attachment=True,
-        download_name='Assignment.docx',
-        mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        pdf_path,
+        mimetype='application/pdf'
     )
 
 
@@ -432,7 +325,7 @@ def download_docx(file_id):
 def download_pdf(file_id):
     pdf_path = os.path.join(OUTPUT_DIR, f'assignment_{file_id}.pdf')
     if not os.path.exists(pdf_path):
-        return jsonify({'error': 'PDF not generated yet. Please regenerate the assignment.'}), 404
+        return jsonify({'error': 'PDF not found. Please regenerate the assignment.'}), 404
 
     return send_file(
         pdf_path,

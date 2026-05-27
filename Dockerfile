@@ -1,36 +1,33 @@
-# Use an official Python runtime as a parent image
+# Use an official Python runtime
 FROM python:3.11-slim
 
-# Set the working directory in the container
 WORKDIR /app
 
-# Install system dependencies
-# Font dependencies for PDF generation
+# Install LibreOffice (for pixel-perfect DOCX→PDF conversion) and fonts
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    libreoffice-writer \
+    libreoffice-core \
     fontconfig \
     fonts-dejavu \
     fonts-liberation \
+    fonts-liberation2 \
+    fonts-noto \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy the requirements file into the container
+# Copy requirements and install Python packages
 COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Install Python packages
-RUN pip install --no-cache-dir -r requirements.txt \
-    && pip install gunicorn
-
-# Copy the rest of the application code
+# Copy the rest of the application
 COPY . .
 
-# Create directories for documents and generated files
+# Create output directories
 RUN mkdir -p documents generated
 
 # Expose the port
 EXPOSE 5000
 
-# Set environment variables
-ENV FLASK_APP=app.py
 ENV PORT=5000
 
-# Run the application using Gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]
+# Run with Gunicorn (increased timeout for LibreOffice conversions)
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--timeout", "120", "app:app"]

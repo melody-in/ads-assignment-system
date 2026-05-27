@@ -3,144 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ADS Assignment Document System</title>
+    <title>ADS — Assignment Document System</title>
+    <meta name="description" content="Generate your personalized stats assignment with one click. Just enter your details.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-        /* ═════════════════════════════════════════════════════════════════════
+        /* ═══════════════════════════════════════════════════════════════
            RESET & BASE
-           ═════════════════════════════════════════════════════════════════════ */
-        *, *::before, *::after {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+           ═══════════════════════════════════════════════════════════════ */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: -apple-system, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-family: 'Inter', -apple-system, 'Helvetica Neue', Arial, sans-serif;
             color: #ffffff;
             overflow-x: hidden;
             min-height: 100vh;
-            background: #0a0a1a;
+            background: #050510;
             -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
             text-rendering: optimizeLegibility;
         }
 
-        /* ═════════════════════════════════════════════════════════════════════
-           RAINBOW AUTO-FLOW ANIMATIONS
-           ═════════════════════════════════════════════════════════════════════ */
-
-        /* — Rainbow color flow for headings */
-        @property --rainbow-angle {
-            syntax: '<angle>';
-            initial-value: 0deg;
-            inherits: false;
-        }
-
-        .rainbow-text {
-            --rainbow-angle: 0deg;
-            background: linear-gradient(
-                var(--rainbow-angle),
-                #ff6b6b, #ff9f43, #feca57, #48dbfb,
-                #0abde3, #a29bfe, #fd79a8, #ff6b6b
-            );
-            background-size: 200% 200%;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: rainbowFlow 6s linear infinite;
-        }
-
-        @keyframes rainbowFlow {
-            0%   { --rainbow-angle: 0deg; }
-            100% { --rainbow-angle: 360deg; }
-        }
-
-        /* — Subtle hue rotation on accent elements */
-        .hue-flow {
-            animation: hueShift 8s linear infinite;
-        }
-
-        @keyframes hueShift {
-            0%   { filter: hue-rotate(0deg); }
-            100% { filter: hue-rotate(360deg); }
-        }
-
-        /* — Shimmering wave effect on glass card borders */
-        .border-wave {
-            position: relative;
-        }
-
-        .border-wave::before {
-            content: '';
-            position: absolute;
-            inset: -2px;
-            border-radius: 22px;
-            background: conic-gradient(
-                from var(--rainbow-angle),
-                #ff6b6b, #ff9f43, #feca57, #48dbfb,
-                #0abde3, #a29bfe, #fd79a8, #ff6b6b
-            );
-            z-index: -1;
-            animation: rainbowFlow 6s linear infinite;
-            opacity: 0.5;
-            transition: opacity 0.4s;
-        }
-
-        .border-wave:hover::before {
-            opacity: 0.8;
-        }
-
-        /* — Pulsing glow keyframes */
-        @keyframes pulseGlow {
-            0%, 100% { box-shadow: 0 0 20px rgba(255, 107, 107, 0.15); }
-            25%      { box-shadow: 0 0 20px rgba(72, 219, 251, 0.15); }
-            50%      { box-shadow: 0 0 20px rgba(162, 155, 254, 0.15); }
-            75%      { box-shadow: 0 0 20px rgba(254, 202, 87, 0.15); }
-        }
-
-        /* ═════════════════════════════════════════════════════════════════════
+        /* ═══════════════════════════════════════════════════════════════
            THREE.JS CANVAS
-           ═════════════════════════════════════════════════════════════════════ */
-        #space-canvas {
+           ═══════════════════════════════════════════════════════════════ */
+        #waveCanvas {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             z-index: 0;
-            cursor: pointer;
         }
 
-        /* Click hint — shows briefly then fades */
-        .click-hint {
-            position: fixed;
-            bottom: 2rem;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 3;
-            background: rgba(255,255,255,0.06);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 20px;
-            padding: 0.5rem 1.2rem;
-            font-size: 0.78rem;
-            color: rgba(255,255,255,0.4);
-            animation: hintFade 6s ease forwards;
-            pointer-events: none;
-            white-space: nowrap;
-        }
-
-        @keyframes hintFade {
-            0%   { opacity: 1; transform: translateX(-50%) translateY(0); }
-            70%  { opacity: 1; transform: translateX(-50%) translateY(0); }
-            100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
-        }
-
-        /* ═════════════════════════════════════════════════════════════════════
+        /* ═══════════════════════════════════════════════════════════════
            CONTENT LAYOUT
-           ═════════════════════════════════════════════════════════════════════ */
+           ═══════════════════════════════════════════════════════════════ */
         .content-wrapper {
             position: relative;
             z-index: 2;
@@ -148,203 +45,157 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 2.5rem 1.5rem 4rem;
+            padding: 3rem 1.5rem 4rem;
         }
 
-        /* ═════════════════════════════════════════════════════════════════════
-           HEADER
-           ═════════════════════════════════════════════════════════════════════ */
+        /* ═══════════════════════════════════════════════════════════════
+           HEADER — Handwritten stylus title
+           ═══════════════════════════════════════════════════════════════ */
         .header {
             text-align: center;
             margin-bottom: 2.5rem;
-            animation: fadeInDown 0.8s ease-out;
-            max-width: 700px;
-        }
-
-        .header-badge {
-            display: inline-block;
-            background: rgba(255,255,255,0.06);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 20px;
-            padding: 0.4rem 1.1rem;
-            font-size: 0.72rem;
-            letter-spacing: 0.15em;
-            text-transform: uppercase;
-            color: rgba(255,255,255,0.55);
-            margin-bottom: 1.25rem;
+            animation: fadeInDown 1s ease-out;
         }
 
         .header h1 {
-            font-size: clamp(2rem, 5.5vw, 3.8rem);
+            font-family: 'Dancing Script', cursive;
+            font-size: clamp(2.2rem, 6vw, 4.2rem);
             font-weight: 700;
-            letter-spacing: -0.025em;
-            line-height: 1.1;
-            margin-bottom: 1rem;
-        }
-
-        .header h1 .accent {
-            display: block;
-            font-weight: 800;
-        }
-
-        .tagline {
-            font-size: 1.05rem;
-            color: rgba(255,255,255,0.6);
-            font-weight: 400;
-            letter-spacing: 0.015em;
-            line-height: 1.6;
-            max-width: 520px;
-            margin: 0 auto;
-            font-style: italic;
-        }
-
-        .tagline .highlight {
-            color: rgba(255,255,255,0.85);
-            font-weight: 500;
-        }
-
-        /* ═════════════════════════════════════════════════════════════════════
-           GLASS CARD
-           ═════════════════════════════════════════════════════════════════════ */
-        .glass-card {
-            position: relative;
-            background: rgba(255,255,255,0.06);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 22px;
-            padding: 2.25rem;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08);
-            width: 100%;
-            max-width: 520px;
-        }
-
-        .glass-card:hover {
-            border-color: rgba(255,255,255,0.15);
-            box-shadow: 0 12px 48px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
-            transform: translateY(-2px);
-        }
-
-        /* ═════════════════════════════════════════════════════════════════════
-           FORM STYLES
-           ═════════════════════════════════════════════════════════════════════ */
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-label {
-            display: block;
-            font-size: 0.72rem;
-            font-weight: 600;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            color: rgba(255,255,255,0.5);
-            margin-bottom: 0.5rem;
-            transition: color 0.3s;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 0.85rem 1.1rem;
-            background: rgba(255,255,255,0.05);
-            border: 1.5px solid rgba(255,255,255,0.08);
-            border-radius: 13px;
-            color: #ffffff;
-            font-family: -apple-system, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
-            font-size: 1rem;
-            letter-spacing: 0.01em;
-            transition: all 0.35s ease;
-            outline: none;
-        }
-
-        .form-input::placeholder {
-            color: rgba(255,255,255,0.22);
-            font-weight: 400;
-        }
-
-        .form-input:focus {
-            border-color: rgba(255,255,255,0.3);
-            background: rgba(255,255,255,0.08);
-            box-shadow: 0 0 0 4px rgba(255,255,255,0.05);
-        }
-
-        .form-input:focus + .form-label {
-            color: rgba(255,255,255,0.7);
-        }
-
-        .form-input.error {
-            border-color: #ff6b6b;
-            box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.1);
-        }
-
-        .form-error {
-            font-size: 0.78rem;
-            color: #ff6b6b;
-            margin-top: 0.35rem;
-            display: none;
-            letter-spacing: 0.01em;
-        }
-
-        .form-input.error + .form-error {
-            display: block;
-        }
-
-        /* ═════════════════════════════════════════════════════════════════════
-           SUBMIT BUTTON
-           ═════════════════════════════════════════════════════════════════════ */
-        .btn-submit {
-            width: 100%;
-            padding: 1rem;
-            border: none;
-            border-radius: 14px;
-            color: white;
-            font-family: -apple-system, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
-            font-size: 1.05rem;
-            font-weight: 600;
             letter-spacing: 0.02em;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            background: linear-gradient(135deg, #ff6b6b, #ff9f43, #feca57, #48dbfb, #a29bfe, #fd79a8);
-            background-size: 300% 300%;
-            animation: gradientShift 4s ease infinite;
+            line-height: 1.2;
+            background: linear-gradient(135deg, #c4b5fd, #818cf8, #a78bfa, #e0e7ff);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shimmerTitle 6s ease infinite;
+            text-shadow: none;
         }
 
-        @keyframes gradientShift {
+        @keyframes shimmerTitle {
             0%   { background-position: 0% 50%; }
             50%  { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
 
-        .btn-submit::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: left 0.6s ease;
+        .header .subtitle {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 400;
+            color: rgba(255,255,255,0.35);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-top: 0.6rem;
         }
 
-        .btn-submit:hover::before {
-            left: 100%;
+        /* ═══════════════════════════════════════════════════════════════
+           GLASS CARD
+           ═══════════════════════════════════════════════════════════════ */
+        .glass-card {
+            background: rgba(255,255,255,0.04);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 20px;
+            padding: 2.25rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06);
+            width: 100%;
+            max-width: 480px;
+            transition: border-color 0.4s, box-shadow 0.4s, transform 0.4s;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(167,139,250,0.2);
+            box-shadow: 0 12px 48px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
+            transform: translateY(-2px);
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           FORM
+           ═══════════════════════════════════════════════════════════════ */
+        .form-group { margin-bottom: 1.4rem; }
+
+        .form-label {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.4);
+            margin-bottom: 0.45rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            background: rgba(255,255,255,0.05);
+            border: 1.5px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .form-input::placeholder { color: rgba(255,255,255,0.18); }
+
+        .form-input:focus {
+            border-color: rgba(167,139,250,0.5);
+            background: rgba(255,255,255,0.07);
+            box-shadow: 0 0 0 3px rgba(167,139,250,0.1);
+        }
+
+        .form-input.error {
+            border-color: #f87171;
+            box-shadow: 0 0 0 3px rgba(248,113,113,0.1);
+        }
+
+        .form-error {
+            font-size: 0.75rem;
+            color: #f87171;
+            margin-top: 0.3rem;
+            display: none;
+        }
+
+        .form-input.error ~ .form-error { display: block; }
+
+        /* ═══════════════════════════════════════════════════════════════
+           SUBMIT BUTTON
+           ═══════════════════════════════════════════════════════════════ */
+        .btn-submit {
+            width: 100%;
+            padding: 0.9rem;
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, #7c3aed, #6366f1, #818cf8);
+            background-size: 200% 200%;
+            animation: btnGradient 4s ease infinite;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        @keyframes btnGradient {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
         .btn-submit:hover {
-            transform: translateY(-2px) scale(1.01);
-            box-shadow: 0 10px 30px rgba(255, 107, 107, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(124,58,237,0.35);
         }
 
-        .btn-submit:active {
-            transform: translateY(0) scale(0.98);
-        }
+        .btn-submit:active { transform: translateY(0) scale(0.98); }
 
         .btn-submit:disabled {
-            opacity: 0.6;
+            opacity: 0.5;
             cursor: not-allowed;
             transform: none !important;
             box-shadow: none !important;
@@ -352,8 +203,7 @@
 
         .btn-submit .spinner {
             display: none;
-            width: 20px;
-            height: 20px;
+            width: 20px; height: 20px;
             border: 2.5px solid rgba(255,255,255,0.3);
             border-top-color: white;
             border-radius: 50%;
@@ -361,17 +211,12 @@
             margin: 0 auto;
         }
 
-        .btn-submit.loading .btn-text {
-            display: none;
-        }
+        .btn-submit.loading .btn-text { display: none; }
+        .btn-submit.loading .spinner  { display: block; }
 
-        .btn-submit.loading .spinner {
-            display: block;
-        }
-
-        /* ═════════════════════════════════════════════════════════════════════
+        /* ═══════════════════════════════════════════════════════════════
            RESULT SECTION
-           ═════════════════════════════════════════════════════════════════════ */
+           ═══════════════════════════════════════════════════════════════ */
         .result-section {
             width: 100%;
             max-width: 900px;
@@ -379,214 +224,88 @@
             display: none;
             animation: fadeInUp 0.6s ease-out;
         }
+        .result-section.visible { display: block; }
 
-        .result-section.visible {
-            display: block;
+        /* Success */
+        .success-message {
+            text-align: center;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1rem;
+            background: rgba(129,140,248,0.08);
+            border: 1px solid rgba(129,140,248,0.15);
+            border-radius: 14px;
+            font-size: 0.88rem;
+            color: rgba(255,255,255,0.85);
+            display: none;
+            line-height: 1.5;
         }
+        .success-message.visible { display: block; }
+        .success-message .check { color: #a78bfa; font-weight: 600; }
+        .success-message strong { color: #fff; font-weight: 600; }
+        .success-message .detail { color: rgba(255,255,255,0.45); font-size: 0.8rem; display: block; margin-top: 0.2rem; }
 
+        /* Error */
+        .error-message {
+            text-align: center;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1rem;
+            background: rgba(248,113,113,0.08);
+            border: 1px solid rgba(248,113,113,0.15);
+            border-radius: 14px;
+            font-size: 0.88rem;
+            color: #f87171;
+            display: none;
+        }
+        .error-message.visible { display: block; }
+
+        /* Download Button */
         .result-actions {
             display: flex;
-            gap: 0.8rem;
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 1.25rem;
         }
 
         .btn-download {
-            flex: 1;
-            min-width: 160px;
-            padding: 0.8rem 1.2rem;
-            border: 1.5px solid rgba(255,255,255,0.1);
-            border-radius: 14px;
-            background: rgba(255,255,255,0.05);
+            padding: 0.75rem 2rem;
+            border: 1.5px solid rgba(167,139,250,0.25);
+            border-radius: 12px;
+            background: rgba(167,139,250,0.08);
             backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            color: #ffffff;
-            font-family: -apple-system, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
-            font-size: 0.9rem;
+            color: #e0e7ff;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.88rem;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            justify-content: center;
             gap: 0.5rem;
             text-decoration: none;
         }
 
         .btn-download:hover {
-            background: rgba(255,255,255,0.1);
-            border-color: rgba(255,255,255,0.2);
+            background: rgba(167,139,250,0.15);
+            border-color: rgba(167,139,250,0.4);
             transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(167,139,250,0.15);
         }
 
-        .btn-download .icon {
-            font-size: 1.1rem;
-        }
+        .btn-download .icon { font-size: 1.1rem; }
 
-        .btn-download.pdf {
-            border-color: rgba(255, 107, 107, 0.3);
-        }
-
-        .btn-download.pdf:hover {
-            border-color: rgba(255, 107, 107, 0.5);
-            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.15);
-        }
-
-        .btn-download.print {
-            border-color: rgba(72, 219, 251, 0.3);
-        }
-
-        .btn-download.print:hover {
-            border-color: rgba(72, 219, 251, 0.5);
-            box-shadow: 0 4px 15px rgba(72, 219, 251, 0.15);
-        }
-
-        /* — Success Message — */
-        .success-message {
-            text-align: center;
-            padding: 1rem 1.25rem;
-            margin-bottom: 1rem;
-            background: rgba(72, 219, 251, 0.08);
-            border: 1px solid rgba(72, 219, 251, 0.15);
-            border-radius: 14px;
-            font-size: 0.9rem;
-            color: rgba(255,255,255,0.85);
-            display: none;
-            line-height: 1.5;
-        }
-
-        .success-message.visible {
-            display: block;
-        }
-
-        .success-message .check {
-            color: #48dbfb;
-            font-weight: 600;
-        }
-
-        .success-message strong {
-            color: #ffffff;
-            font-weight: 600;
-        }
-
-        .success-message .detail {
-            color: rgba(255,255,255,0.5);
-            font-size: 0.82rem;
-            display: block;
-            margin-top: 0.25rem;
-        }
-
-        /* — Error Message — */
-        .error-message {
-            text-align: center;
-            padding: 1rem 1.25rem;
-            margin-bottom: 1rem;
-            background: rgba(255, 107, 107, 0.08);
-            border: 1px solid rgba(255, 107, 107, 0.15);
-            border-radius: 14px;
-            font-size: 0.9rem;
-            color: #ff6b6b;
-            display: none;
-            line-height: 1.5;
-        }
-
-        .error-message.visible {
-            display: block;
-        }
-
-        /* ═════════════════════════════════════════════════════════════════════
-           PREVIEW CONTAINER
-           ═════════════════════════════════════════════════════════════════════ */
-        .preview-container {
-            background: #ffffff;
+        /* ═══════════════════════════════════════════════════════════════
+           PDF PREVIEW (IFRAME)
+           ═══════════════════════════════════════════════════════════════ */
+        .preview-wrapper {
             border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.25);
-            max-height: 650px;
-            overflow-y: auto;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.06);
         }
 
-        .preview-container::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .preview-container::-webkit-scrollbar-track {
-            background: #f0f0f0;
-        }
-
-        .preview-container::-webkit-scrollbar-thumb {
-            background: #ccc;
-            border-radius: 4px;
-        }
-
-        .preview-container::-webkit-scrollbar-thumb:hover {
-            background: #aaa;
-        }
-
-        .preview-inner {
-            padding: 2.5rem;
-            color: #1d1d1f;
-            font-family: 'Times New Roman', Georgia, serif;
-            line-height: 1.65;
-            font-size: 11pt;
-        }
-
-        .preview-inner h1 {
-            font-size: 1.6rem;
-            color: #1d1d1f;
-            font-weight: 700;
-            margin-bottom: 0.75rem;
-        }
-
-        .preview-inner h2 {
-            font-size: 1.35rem;
-            color: #1d1d1f;
-            font-weight: 700;
-            margin-bottom: 0.6rem;
-        }
-
-        .preview-inner h3 {
-            font-size: 1.15rem;
-            color: #1d1d1f;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-
-        .preview-inner p {
-            margin-bottom: 0.5rem;
-            color: #333;
-        }
-
-        .preview-inner p.strong {
-            font-weight: 700;
-            font-size: 1rem;
-            color: #1d1d1f;
-        }
-
-        .preview-inner table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 0.75rem 0;
-            font-size: 9pt;
-        }
-
-        .preview-inner table td {
-            border: 1px solid #ddd;
-            padding: 0.5rem 0.7rem;
-            vertical-align: top;
-            color: #333;
-        }
-
-        .preview-inner table tr:first-child td {
-            background: #f8f8f8;
-            font-weight: 600;
-            color: #1d1d1f;
-        }
-
-        /* Preview Header Bar */
         .preview-header {
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
-            padding: 0.9rem 1.5rem;
+            background: rgba(255,255,255,0.04);
+            backdrop-filter: blur(10px);
+            padding: 0.75rem 1.25rem;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -594,367 +313,124 @@
         }
 
         .preview-header span {
-            color: rgba(255,255,255,0.85);
+            color: rgba(255,255,255,0.7);
             font-weight: 500;
-            font-size: 0.85rem;
-            letter-spacing: 0.02em;
+            font-size: 0.82rem;
         }
 
         .preview-header .badge {
-            background: rgba(255,255,255,0.08);
-            padding: 0.2rem 0.7rem;
+            background: rgba(167,139,250,0.15);
+            padding: 0.15rem 0.6rem;
             border-radius: 20px;
-            font-size: 0.7rem;
-            color: rgba(255,255,255,0.5);
+            font-size: 0.65rem;
+            color: rgba(167,139,250,0.8);
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
         }
 
-        /* Preview Loading */
+        .pdf-frame {
+            width: 100%;
+            height: 700px;
+            border: none;
+            background: #1a1a2e;
+        }
+
+        /* Loading */
         .preview-loading {
             display: none;
-            padding: 3rem;
+            padding: 4rem;
             text-align: center;
-            background: white;
-            border-radius: 16px;
+            background: rgba(255,255,255,0.02);
         }
-
-        .preview-loading.visible {
-            display: block;
-        }
-
+        .preview-loading.visible { display: block; }
         .preview-loading .pulse {
-            width: 36px;
-            height: 36px;
-            border: 3px solid #eee;
-            border-top-color: #a29bfe;
+            width: 36px; height: 36px;
+            border: 3px solid rgba(255,255,255,0.08);
+            border-top-color: #a78bfa;
             border-radius: 50%;
             animation: spin 0.7s linear infinite;
             margin: 0 auto 0.75rem;
         }
+        .preview-loading span { color: rgba(255,255,255,0.35); font-size: 0.82rem; }
 
-        .preview-loading span {
-            color: #999;
-            font-size: 0.85rem;
-        }
-
-        /* ═════════════════════════════════════════════════════════════════════
+        /* ═══════════════════════════════════════════════════════════════
            ANIMATIONS
-           ═════════════════════════════════════════════════════════════════════ */
+           ═══════════════════════════════════════════════════════════════ */
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(25px); }
             to   { opacity: 1; transform: translateY(0); }
         }
-
         @keyframes fadeInDown {
             from { opacity: 0; transform: translateY(-20px); }
             to   { opacity: 1; transform: translateY(0); }
         }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        /* ═══════════════════════════════════════════════════════════════
+           SCROLLBAR
+           ═══════════════════════════════════════════════════════════════ */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
 
-        /* ═════════════════════════════════════════════════════════════════════
-           SCROLLBAR (Global)
-           ═════════════════════════════════════════════════════════════════════ */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.1);
-            border-radius: 3px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(255,255,255,0.2);
-        }
-
-        /* ═════════════════════════════════════════════════════════════════════
+        /* ═══════════════════════════════════════════════════════════════
            RESPONSIVE
-           ═════════════════════════════════════════════════════════════════════ */
+           ═══════════════════════════════════════════════════════════════ */
         @media (max-width: 640px) {
-            .content-wrapper { padding: 1.25rem 1rem 3rem; }
-            .glass-card { padding: 1.5rem; border-radius: 18px; }
-            .header h1 { font-size: 1.7rem; }
-            .result-actions { flex-direction: column; }
-            .btn-download { min-width: unset; }
-            .preview-inner { padding: 1.5rem; }
-            .preview-inner table { font-size: 8pt; }
-            .preview-inner table td { padding: 0.35rem 0.4rem; }
-            .tagline { font-size: 0.92rem; }
+            .content-wrapper { padding: 1.5rem 1rem 3rem; }
+            .glass-card { padding: 1.5rem; border-radius: 16px; }
+            .pdf-frame { height: 450px; }
         }
 
         @media (max-width: 480px) {
-            .header h1 { font-size: 1.4rem; }
+            .header h1 { font-size: 2rem; }
             .glass-card { padding: 1.25rem; }
-            .header-badge { font-size: 0.62rem; }
-        }
-
-        /* ─── Footer / Info ─────────────────────────────────────────────── */
-        .footer-info {
-            margin-top: 2.5rem;
-            text-align: center;
-            font-size: 0.72rem;
-            color: rgba(255,255,255,0.25);
-            line-height: 1.7;
-            max-width: 480px;
-        }
-
-        .footer-info code {
-            background: rgba(255,255,255,0.06);
-            padding: 0.15rem 0.4rem;
-            border-radius: 4px;
-            font-family: 'SF Mono', 'Menlo', monospace;
-            font-size: 0.7rem;
-            color: rgba(255,255,255,0.35);
-        }
-
-        /* ═════════════════════════════════════════════════════════════════════
-           RIPPLE EFFECT
-           ═════════════════════════════════════════════════════════════════════ */
-        .ripple-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            border-radius: 14px;
-            pointer-events: none;
-        }
-
-        .ripple {
-            position: absolute;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.35);
-            transform: scale(0);
-            animation: rippleAnim 0.6s ease-out forwards;
-            pointer-events: none;
-        }
-
-        @keyframes rippleAnim {
-            to { transform: scale(4); opacity: 0; }
-        }
-
-        /* ═════════════════════════════════════════════════════════════════════
-           CONFETTI
-           ═════════════════════════════════════════════════════════════════════ */
-        .confetti-piece {
-            position: fixed;
-            width: 8px;
-            height: 8px;
-            z-index: 1000;
-            pointer-events: none;
-        }
-
-        /* ═════════════════════════════════════════════════════════════════════
-           SHIMMER SKELETON LOADING
-           ═════════════════════════════════════════════════════════════════════ */
-        .preview-skeleton {
-            padding: 2.5rem;
-            display: none;
-            flex-direction: column;
-            gap: 1rem;
-            background: white;
-            border-radius: 16px;
-        }
-
-        .preview-skeleton.visible {
-            display: flex;
-        }
-
-        .skeleton-line {
-            height: 14px;
-            background: linear-gradient(90deg, #eee 25%, #f5f5f5 50%, #eee 75%);
-            background-size: 200% 100%;
-            border-radius: 6px;
-            animation: shimmer 1.5s infinite;
-        }
-
-        .skeleton-line:nth-child(1) { width: 55%; height: 22px; margin-bottom: 0.25rem; }
-        .skeleton-line:nth-child(2) { width: 75%; }
-        .skeleton-line:nth-child(3) { width: 60%; }
-        .skeleton-line:nth-child(4) { width: 85%; }
-        .skeleton-line:nth-child(5) { width: 40%; }
-        .skeleton-line:nth-child(6) { width: 70%; margin-top: 0.5rem; }
-        .skeleton-line:nth-child(7) { width: 50%; }
-        .skeleton-line:nth-child(8) { width: 90%; }
-        .skeleton-line:nth-child(9) { width: 35%; }
-
-        @keyframes shimmer {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
-        }
-
-        /* ═════════════════════════════════════════════════════════════════════
-           TYPING CURSOR
-           ═════════════════════════════════════════════════════════════════════ */
-        .typing-cursor {
-            display: inline-block;
-            width: 2px;
-            height: 1.1em;
-            background: rgba(255,255,255,0.7);
-            margin-left: 2px;
-            animation: blink 0.8s step-end infinite;
-            vertical-align: text-bottom;
-        }
-
-        @keyframes blink {
-            50% { opacity: 0; }
-        }
-
-        /* ═════════════════════════════════════════════════════════════════════
-           WELCOME BACK / INFO BADGE
-           ═════════════════════════════════════════════════════════════════════ */
-        .info-toast {
-            position: fixed;
-            top: 1.2rem;
-            right: 1.2rem;
-            z-index: 10;
-            background: rgba(255,255,255,0.07);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 14px;
-            padding: 0.65rem 1.1rem;
-            font-size: 0.78rem;
-            color: rgba(255,255,255,0.55);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            animation: slideInRight 0.5s ease-out;
-            transition: all 0.4s ease;
-            max-width: 280px;
-            line-height: 1.4;
-        }
-
-        .info-toast .icon {
-            font-size: 0.9rem;
-            flex-shrink: 0;
-        }
-
-        @keyframes slideInRight {
-            from { opacity: 0; transform: translateX(30px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-
-        .info-toast.fade-out {
-            opacity: 0;
-            transform: translateX(30px);
-            pointer-events: none;
-        }
-
-        /* ═════════════════════════════════════════════════════════════════════
-           FORM INPUT ENHANCEMENTS
-           ═════════════════════════════════════════════════════════════════════ */
-        .form-input.filled {
-            border-color: rgba(72, 219, 251, 0.25);
-        }
-
-        .form-input:focus {
-            border-color: rgba(255,255,255,0.3);
-            background: rgba(255,255,255,0.08);
-            box-shadow: 0 0 0 4px rgba(255,255,255,0.05), 0 0 20px rgba(162, 155, 254, 0.08);
         }
 
         @media print {
-            .btn-submit, .btn-download, .result-actions, .preview-header,
-            .header-badge, #space-canvas, .success-message, .error-message,
-            .click-hint, .footer-info, .info-toast, .confetti-piece,
-            .ripple-container { display: none !important; }
-            .result-section { margin-top: 0; }
-            .preview-container { max-height: none; overflow: visible; border-radius: 0; box-shadow: none; }
-            .preview-inner { padding: 0; color: #000; }
-            .content-wrapper { padding: 0; }
-            body { background: white; }
+            #waveCanvas, .btn-submit, .btn-download, .result-actions,
+            .preview-header, .header, .glass-card, .success-message,
+            .error-message { display: none !important; }
+            .preview-wrapper { box-shadow: none; border: none; }
+            .pdf-frame { height: auto; }
         }
     </style>
 </head>
 <body>
-    <!-- Three.js Canvas (background + bubbles) -->
-    <canvas id="space-canvas"></canvas>
+    <canvas id="waveCanvas"></canvas>
 
-    <!-- Info Toast (autosave indicator, welcome back, etc.) -->
-    <!-- Initially hidden; shown when needed by JS -->
-    <div class="info-toast" id="infoToast" style="display:none;">
-        <span class="icon">✨</span>
-        <span id="toastMessage">Welcome back! Loading your data...</span>
-    </div>
-
-    <!-- Click hint -->
-    <div class="click-hint">✦ Click the bubbles to burst them!</div>
-
-    <!-- Content -->
     <div class="content-wrapper">
         <!-- Header -->
         <div class="header">
-            <div class="header-badge">✦ Academic Document System v2.0</div>
-            <h1>
-                <span class="rainbow-text">ADS Assignment</span>
-                <span class="accent rainbow-text">Document System</span>
-            </h1>
-            <p class="tagline">
-                "In the Spirit of <span class="highlight">Brotherhood</span>, 
-                We Build the Future of Our <span class="highlight">Nation</span> —<br>
-                One Document at a Time."
-            </p>
+            <h1>ADS Assignment<br>Document System</h1>
+            <p class="subtitle">Enter your details · Preview · Download</p>
         </div>
 
-        <!-- Form Card -->
-        <div class="glass-card border-wave" id="formCard">
+        <!-- Form -->
+        <div class="glass-card" id="formCard">
             <form id="assignmentForm" autocomplete="off">
                 <div class="form-group">
                     <label class="form-label" for="studentName">Full Name</label>
-                    <input
-                        type="text"
-                        id="studentName"
-                        class="form-input"
-                        placeholder="e.g., Akshit"
-                        required
-                        autofocus
-                    />
+                    <input type="text" id="studentName" class="form-input" placeholder="e.g., John Doe" required autofocus />
                     <div class="form-error">Please enter your full name</div>
                 </div>
 
                 <div class="form-group">
                     <label class="form-label" for="studentPid">PID Number</label>
-                    <input
-                        type="text"
-                        id="studentPid"
-                        class="form-input"
-                        placeholder="e.g., 25MSRSGIS001"
-                        required
-                    />
+                    <input type="text" id="studentPid" class="form-input" placeholder="e.g., 25MSRSGIS002" required />
                     <div class="form-error">Please enter your PID number</div>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" for="studentCourse">Course</label>
-                    <input
-                        type="text"
-                        id="studentCourse"
-                        class="form-input"
-                        placeholder="e.g., M.Sc. GIS & Remote Sensing"
-                        required
-                    />
-                    <div class="form-error">Please enter your course name</div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="studentGender">Gender</label>
-                    <input
-                        type="text"
-                        id="studentGender"
-                        class="form-input"
-                        placeholder="e.g., Male"
-                        required
-                    />
-                    <div class="form-error">Please enter your gender</div>
+                    <label class="form-label" for="studentCourse">Program</label>
+                    <input type="text" id="studentCourse" class="form-input" placeholder="e.g., M.Sc. Remote Sensing & GIS" required />
+                    <div class="form-error">Please enter your program name</div>
                 </div>
 
                 <button type="submit" class="btn-submit" id="btnSubmit">
-                    <span class="btn-text">✦ Submit</span>
+                    <span class="btn-text">Generate Assignment</span>
                     <div class="spinner"></div>
                 </button>
             </form>
@@ -970,874 +446,409 @@
             <div class="error-message" id="errorMessage"></div>
 
             <div class="result-actions">
-                <a class="btn-download" id="downloadDocx" href="#" download>
+                <a class="btn-download" id="downloadPdf" href="#" download>
                     <span class="icon">📄</span>
-                    Download DOCX
-                </a>
-                <a class="btn-download pdf" id="downloadPdf" href="#" download>
-                    <span class="icon">📕</span>
                     Download PDF
                 </a>
-                <button class="btn-download print" id="printBtn" onclick="window.print()">
-                    <span class="icon">🖨️</span>
-                    Print / Save PDF
-                </button>
             </div>
 
-            <div class="preview-container">
+            <div class="preview-wrapper">
                 <div class="preview-header">
                     <span>📋 Document Preview</span>
-                    <span class="badge">Preview</span>
+                    <span class="badge">Live</span>
                 </div>
                 <div class="preview-loading" id="previewLoading">
                     <div class="pulse"></div>
-                    <span>Loading preview...</span>
+                    <span>Generating your assignment...</span>
                 </div>
-                <div class="preview-skeleton" id="previewSkeleton">
-                    <div class="skeleton-line"></div>
-                    <div class="skeleton-line"></div>
-                    <div class="skeleton-line"></div>
-                    <div class="skeleton-line"></div>
-                    <div class="skeleton-line"></div>
-                    <div class="skeleton-line"></div>
-                    <div class="skeleton-line"></div>
-                    <div class="skeleton-line"></div>
-                    <div class="skeleton-line"></div>
-                </div>
-                <div class="preview-inner" id="previewContent"></div>
+                <iframe class="pdf-frame" id="pdfFrame" style="display:none;"></iframe>
             </div>
-        </div>
-        <!-- Footer -->
-        <div class="footer-info">
-            📁 To use a different document, place your <code>.docx</code> file in the
-            <code>documents/</code> folder and update <code>settings.json</code>.
-            Only student name, PID, and course are replaced — everything else stays untouched.
         </div>
     </div>
 
     <script>
-        // ═════════════════════════════════════════════════════════════════════
-        // THREE.JS — SPACE BACKGROUND WITH BUBBLES & BURST EFFECT
-        // ═════════════════════════════════════════════════════════════════════
-        (function initSpace() {
-            const canvas = document.getElementById('space-canvas');
-            const scene = new THREE.Scene();
-            const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 2000);
-            const renderer = new THREE.WebGLRenderer({
-                canvas,
-                alpha: true,
-                antialias: true
-            });
+    // ═══════════════════════════════════════════════════════════════════════
+    // THREE.JS — 3D SOUND WAVES IN SPACE (Interactive)
+    // ═══════════════════════════════════════════════════════════════════════
+    (function initWaves() {
+        const canvas = document.getElementById('waveCanvas');
+        const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
+        camera.position.set(0, 30, 80);
+        camera.lookAt(0, 0, 0);
+
+        // Mouse tracking
+        let mouseX = 0, mouseY = 0;
+        let targetMouseX = 0, targetMouseY = 0;
+        let touchInfluence = { x: 0, y: 0, strength: 0 };
+
+        document.addEventListener('mousemove', (e) => {
+            targetMouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+            targetMouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+        });
+
+        // Touch/click interaction — creates a ripple in the waves
+        function onInteract(clientX, clientY) {
+            touchInfluence.x = (clientX / window.innerWidth - 0.5) * 2;
+            touchInfluence.y = (clientY / window.innerHeight - 0.5) * 2;
+            touchInfluence.strength = 1.0;
+        }
+
+        canvas.addEventListener('mousedown', (e) => onInteract(e.clientX, e.clientY));
+        canvas.addEventListener('touchstart', (e) => {
+            if (e.touches.length > 0) onInteract(e.touches[0].clientX, e.touches[0].clientY);
+        }, { passive: true });
+
+        // ─── Wave Plane ─────────────────────────────────────────────────
+        const WAVE_SEG_X = 200;
+        const WAVE_SEG_Z = 200;
+        const waveGeo = new THREE.PlaneGeometry(200, 200, WAVE_SEG_X, WAVE_SEG_Z);
+        waveGeo.rotateX(-Math.PI / 2);
+
+        const waveMat = new THREE.ShaderMaterial({
+            uniforms: {
+                uTime: { value: 0.0 },
+                uMouse: { value: new THREE.Vector2(0, 0) },
+                uTouch: { value: new THREE.Vector3(0, 0, 0) },
+                uColor1: { value: new THREE.Color(0x6366f1) },
+                uColor2: { value: new THREE.Color(0xa78bfa) },
+                uColor3: { value: new THREE.Color(0x818cf8) }
+            },
+            vertexShader: `
+                uniform float uTime;
+                uniform vec2 uMouse;
+                uniform vec3 uTouch;
+                varying float vHeight;
+                varying vec2 vUv;
+
+                void main() {
+                    vec3 pos = position;
+                    float x = pos.x;
+                    float z = pos.z;
+
+                    // Multiple wave layers (sound wave propagation)
+                    float wave1 = sin(x * 0.08 + uTime * 0.8) * 3.0;
+                    float wave2 = sin(z * 0.06 + uTime * 0.6) * 2.5;
+                    float wave3 = sin((x + z) * 0.05 + uTime * 1.2) * 2.0;
+                    float wave4 = cos(x * 0.12 - uTime * 0.4) * sin(z * 0.1 + uTime * 0.7) * 1.5;
+
+                    // Mouse influence — waves react to cursor position
+                    float mx = uMouse.x * 100.0;
+                    float mz = uMouse.y * 100.0;
+                    float mouseDist = length(vec2(x - mx, z - mz));
+                    float mouseWave = sin(mouseDist * 0.1 - uTime * 2.0) * exp(-mouseDist * 0.015) * 5.0;
+
+                    // Touch ripple
+                    float tx = uTouch.x * 100.0;
+                    float tz = uTouch.y * 100.0;
+                    float touchStr = uTouch.z;
+                    float touchDist = length(vec2(x - tx, z - tz));
+                    float touchWave = sin(touchDist * 0.15 - uTime * 4.0) * exp(-touchDist * 0.02) * 8.0 * touchStr;
+
+                    pos.y = wave1 + wave2 + wave3 + wave4 + mouseWave + touchWave;
+                    vHeight = pos.y;
+                    vUv = uv;
+
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+                }
+            `,
+            fragmentShader: `
+                uniform vec3 uColor1;
+                uniform vec3 uColor2;
+                uniform vec3 uColor3;
+                uniform float uTime;
+                varying float vHeight;
+                varying vec2 vUv;
+
+                void main() {
+                    // Color based on wave height
+                    float t = (vHeight + 8.0) / 16.0;
+                    vec3 color = mix(uColor1, uColor2, smoothstep(0.0, 0.5, t));
+                    color = mix(color, uColor3, smoothstep(0.5, 1.0, t));
+
+                    // Subtle grid lines for depth
+                    float gridX = abs(fract(vUv.x * 40.0) - 0.5) * 2.0;
+                    float gridZ = abs(fract(vUv.y * 40.0) - 0.5) * 2.0;
+                    float grid = max(
+                        smoothstep(0.96, 1.0, gridX),
+                        smoothstep(0.96, 1.0, gridZ)
+                    );
+
+                    color += grid * 0.15;
+
+                    // Opacity based on height — peaks glow
+                    float alpha = 0.25 + smoothstep(0.0, 8.0, abs(vHeight)) * 0.4;
+                    alpha += grid * 0.1;
+
+                    gl_FragColor = vec4(color, alpha);
+                }
+            `,
+            transparent: true,
+            side: THREE.DoubleSide,
+            wireframe: false,
+            depthWrite: false
+        });
+
+        const waveMesh = new THREE.Mesh(waveGeo, waveMat);
+        waveMesh.position.y = -15;
+        scene.add(waveMesh);
+
+        // ─── Wireframe overlay for depth perception ─────────────────────
+        const wireMat = new THREE.ShaderMaterial({
+            uniforms: waveMat.uniforms,
+            vertexShader: waveMat.vertexShader,
+            fragmentShader: `
+                uniform float uTime;
+                varying float vHeight;
+                varying vec2 vUv;
+                void main() {
+                    float alpha = 0.06 + smoothstep(2.0, 8.0, abs(vHeight)) * 0.12;
+                    gl_FragColor = vec4(0.7, 0.6, 1.0, alpha);
+                }
+            `,
+            transparent: true,
+            wireframe: true,
+            depthWrite: false
+        });
+
+        const wireMesh = new THREE.Mesh(waveGeo.clone(), wireMat);
+        wireMesh.rotation.x = -Math.PI / 2;
+        // Share the vertex shader behavior
+        wireMesh.position.copy(waveMesh.position);
+        scene.add(wireMesh);
+
+        // ─── Floating particles (atoms/stars in space) ──────────────────
+        const particleCount = 1500;
+        const particleGeo = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+        const colors = new Float32Array(particleCount * 3);
+        const sizes = new Float32Array(particleCount);
+
+        for (let i = 0; i < particleCount; i++) {
+            positions[i * 3]     = (Math.random() - 0.5) * 300;
+            positions[i * 3 + 1] = (Math.random() - 0.5) * 150;
+            positions[i * 3 + 2] = (Math.random() - 0.5) * 300;
+
+            const t = Math.random();
+            if (t < 0.33) {
+                colors[i*3] = 0.39; colors[i*3+1] = 0.4; colors[i*3+2] = 0.95; // indigo
+            } else if (t < 0.66) {
+                colors[i*3] = 0.65; colors[i*3+1] = 0.55; colors[i*3+2] = 0.98; // purple
+            } else {
+                colors[i*3] = 0.5; colors[i*3+1] = 0.55; colors[i*3+2] = 0.97; // blue
+            }
+
+            sizes[i] = Math.random() * 1.5 + 0.3;
+        }
+
+        particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        particleGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        particleGeo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+        const particleMat = new THREE.PointsMaterial({
+            size: 0.8,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.5,
+            sizeAttenuation: true,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+        });
+
+        const particles = new THREE.Points(particleGeo, particleMat);
+        scene.add(particles);
+
+        // ─── Ambient light ──────────────────────────────────────────────
+        scene.add(new THREE.AmbientLight(0x6366f1, 0.3));
+
+        // ─── Animation Loop ─────────────────────────────────────────────
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const elapsed = clock.getElapsedTime();
+
+            // Smooth mouse
+            mouseX += (targetMouseX - mouseX) * 0.05;
+            mouseY += (targetMouseY - mouseY) * 0.05;
+
+            // Decay touch influence
+            touchInfluence.strength *= 0.985;
+            if (touchInfluence.strength < 0.001) touchInfluence.strength = 0;
+
+            // Update uniforms
+            waveMat.uniforms.uTime.value = elapsed;
+            waveMat.uniforms.uMouse.value.set(mouseX, mouseY);
+            waveMat.uniforms.uTouch.value.set(
+                touchInfluence.x,
+                touchInfluence.y,
+                touchInfluence.strength
+            );
+
+            // Sync wireframe uniforms
+            wireMat.uniforms.uTime.value = elapsed;
+            wireMat.uniforms.uMouse.value.copy(waveMat.uniforms.uMouse.value);
+            wireMat.uniforms.uTouch.value.copy(waveMat.uniforms.uTouch.value);
+
+            // Particle drift
+            const posArr = particleGeo.attributes.position.array;
+            for (let i = 0; i < particleCount; i++) {
+                posArr[i * 3 + 1] += Math.sin(elapsed * 0.3 + i) * 0.008;
+                posArr[i * 3] += Math.cos(elapsed * 0.2 + i * 0.7) * 0.005;
+            }
+            particleGeo.attributes.position.needsUpdate = true;
+
+            // Camera subtle sway
+            camera.position.x += (mouseX * 12 - camera.position.x) * 0.02;
+            camera.position.y += (30 - mouseY * 8 - camera.position.y) * 0.02;
+            camera.lookAt(0, -5, 0);
+
+            // Rotate particles slowly
+            particles.rotation.y = elapsed * 0.02;
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            // ─── Stars ─────────────────────────────────────────────────────
-            const starsGeometry = new THREE.BufferGeometry();
-            const starsCount = 4000;
-            const starPositions = new Float32Array(starsCount * 3);
-            const starSizes = new Float32Array(starsCount);
-            const starColors = new Float32Array(starsCount * 3);
-
-            for (let i = 0; i < starsCount; i++) {
-                const radius = Math.random() * 900 + 100;
-                const theta = Math.random() * Math.PI * 2;
-                const phi = Math.acos(2 * Math.random() - 1);
-
-                starPositions[i * 3]     = radius * Math.sin(phi) * Math.cos(theta);
-                starPositions[i * 3 + 1] = radius * Math.cos(phi);
-                starPositions[i * 3 + 2] = radius * Math.sin(phi) * Math.sin(theta);
-                starSizes[i] = Math.random() * 2 + 0.3;
-
-                const tint = Math.random();
-                if (tint < 0.33) {
-                    starColors[i * 3] = 1; starColors[i * 3 + 1] = 0.9; starColors[i * 3 + 2] = 0.7;
-                } else if (tint < 0.66) {
-                    starColors[i * 3] = 0.7; starColors[i * 3 + 1] = 0.8; starColors[i * 3 + 2] = 1;
-                } else {
-                    starColors[i * 3] = 1; starColors[i * 3 + 1] = 1; starColors[i * 3 + 2] = 1;
-                }
-            }
-
-            starsGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
-            starsGeometry.setAttribute('size', new THREE.BufferAttribute(starSizes, 1));
-            starsGeometry.setAttribute('color', new THREE.BufferAttribute(starColors, 3));                const starMaterial = new THREE.PointsMaterial({
-                size: 1.8,
-                vertexColors: true,
-                transparent: true,
-                opacity: 0.85,
-                sizeAttenuation: true,
-                blending: THREE.AdditiveBlending
-            });
-
-            const stars = new THREE.Points(starsGeometry, starMaterial);
-            scene.add(stars);
-
-            // ─── Nebula clouds (large transparent colored spheres) ───────
-            const nebulaColors = [
-                0x6c5ce7, 0xa29bfe, 0xfd79a8, 0x48dbfb,
-                0x0abde3, 0xff6b6b, 0xfeca57
-            ];
-            const nebulaClouds = [];
-
-            for (let i = 0; i < 6; i++) {
-                const size = Math.random() * 120 + 60;
-                const geo = new THREE.SphereGeometry(size, 20, 20);
-                const color = nebulaColors[i % nebulaColors.length];
-                const mat = new THREE.MeshBasicMaterial({
-                    color: color,
-                    transparent: true,
-                    opacity: 0.025 + Math.random() * 0.035,
-                    blending: THREE.AdditiveBlending,
-                    depthWrite: false,
-                    side: THREE.DoubleSide
-                });
-
-                const cloud = new THREE.Mesh(geo, mat);
-                const radius = Math.random() * 300 + 50;
-                const theta = Math.random() * Math.PI * 2;
-                const phi = Math.acos(2 * Math.random() - 1);
-
-                cloud.position.set(
-                    radius * Math.sin(phi) * Math.cos(theta),
-                    radius * Math.cos(phi),
-                    radius * Math.sin(phi) * Math.sin(theta) - 100
-                );
-
-                cloud.userData = {
-                    rotSpeed: (Math.random() - 0.5) * 0.002,
-                    floatSpeed: Math.random() * 0.002 + 0.0005,
-                    floatAmp: Math.random() * 5 + 2,
-                    floatOffset: Math.random() * Math.PI * 2,
-                    basePos: cloud.position.clone(),
-                    pulseSpeed: Math.random() * 0.005 + 0.002,
-                    baseOpacity: mat.opacity
-                };
-
-                scene.add(cloud);
-                nebulaClouds.push(cloud);
-            }
-
-            // ─── Crystals (Icosahedrons) ───────────────────────────────────
-            const crystals = [];
-            const crystalColors = [
-                0xff6b6b, 0xff9f43, 0xfeca57, 0x48dbfb,
-                0x0abde3, 0xa29bfe, 0xfd79a8, 0x00d2d3
-            ];
-
-            for (let i = 0; i < 20; i++) {
-                const size = Math.random() * 0.5 + 0.15;
-                const geometry = new THREE.IcosahedronGeometry(size, 0);
-                const color = crystalColors[Math.floor(Math.random() * crystalColors.length)];
-                const material = new THREE.MeshPhysicalMaterial({
-                    color: color,
-                    emissive: color,
-                    emissiveIntensity: 0.12,
-                    metalness: 0.2,
-                    roughness: 0.15,
-                    transparent: true,
-                    opacity: 0.35 + Math.random() * 0.25,
-                    wireframe: Math.random() > 0.6,
-                });
-
-                const crystal = new THREE.Mesh(geometry, material);
-                const radius = Math.random() * 400 + 60;
-                const theta = Math.random() * Math.PI * 2;
-                const phi = Math.acos(2 * Math.random() - 1);
-
-                crystal.position.set(
-                    radius * Math.sin(phi) * Math.cos(theta),
-                    radius * Math.cos(phi),
-                    radius * Math.sin(phi) * Math.sin(theta)
-                );
-
-                crystal.userData = {
-                    rotSpeed: { x: (Math.random() - 0.5) * 0.015, y: (Math.random() - 0.5) * 0.015 },
-                    floatSpeed: Math.random() * 0.004 + 0.001,
-                    floatAmp: Math.random() * 4 + 1.5,
-                    floatOffset: Math.random() * Math.PI * 2,
-                    baseY: crystal.position.y
-                };
-
-                scene.add(crystal);
-                crystals.push(crystal);
-            }
-
-            // ─── BUBBLES (clickable spheres) ───────────────────────────────
-            const bubbles = [];
-            const burstParticles = [];
-            const bubbleColors = [
-                0xff6b6b, 0xff9f43, 0xfeca57, 0x48dbfb,
-                0x0abde3, 0xa29bfe, 0xfd79a8, 0x00d2d3,
-                0x6c5ce7, 0xfdcb6e, 0xe17055, 0x00cec9
-            ];
-
-            function createBubble() {
-                const size = Math.random() * 0.8 + 0.35;
-                const geometry = new THREE.SphereGeometry(size, 24, 24);
-                const color = bubbleColors[Math.floor(Math.random() * bubbleColors.length)];
-                const material = new THREE.MeshPhysicalMaterial({
-                    color: color,
-                    emissive: color,
-                    emissiveIntensity: 0.05,
-                    metalness: 0.1,
-                    roughness: 0.05,
-                    transparent: true,
-                    opacity: 0.5 + Math.random() * 0.3,
-                    clearcoat: 0.3,
-                    clearcoatRoughness: 0.2,
-                });
-
-                const bubble = new THREE.Mesh(geometry, material);
-
-                // Position in a ring/sphere around the center, but not too close to camera
-                const radius = Math.random() * 250 + 80;
-                const theta = Math.random() * Math.PI * 2;
-                const phi = Math.acos(2 * Math.random() - 1);
-
-                bubble.position.set(
-                    radius * Math.sin(phi) * Math.cos(theta),
-                    radius * Math.cos(phi),
-                    radius * Math.sin(phi) * Math.sin(theta) - 50
-                );
-
-                bubble.userData = {
-                    rotSpeed: (Math.random() - 0.5) * 0.01,
-                    floatSpeed: Math.random() * 0.003 + 0.001,
-                    floatAmp: Math.random() * 3 + 1,
-                    floatOffset: Math.random() * Math.PI * 2,
-                    basePos: bubble.position.clone(),
-                    size: size,
-                    color: color,
-                    opacity: material.opacity,
-                    alive: true
-                };
-
-                return bubble;
-            }
-
-            function spawnBubble() {
-                const bubble = createBubble();
-                scene.add(bubble);
-                bubbles.push(bubble);
-                return bubble;
-            }
-
-            // Spawn initial bubbles
-            for (let i = 0; i < 18; i++) {
-                spawnBubble();
-            }
-
-            // ─── Burst Effect ──────────────────────────────────────────────
-            function createBurst(position, color, count) {
-                const count_ = count || 40;
-
-                for (let i = 0; i < count_; i++) {
-                    const size = Math.random() * 0.15 + 0.03;
-                    const geometry = new THREE.SphereGeometry(size, 6, 6);
-
-                    const material = new THREE.MeshBasicMaterial({
-                        color: color,
-                        transparent: true,
-                        opacity: 1
-                    });
-
-                    const particle = new THREE.Mesh(geometry, material);
-                    particle.position.copy(position);
-
-                    // Random direction
-                    const dir = new THREE.Vector3(
-                        (Math.random() - 0.5) * 2,
-                        (Math.random() - 0.5) * 2,
-                        (Math.random() - 0.5) * 2
-                    ).normalize();
-
-                    const speed = Math.random() * 3 + 1.5;
-
-                    particle.userData = {
-                        velocity: dir.multiplyScalar(speed),
-                        life: 0,
-                        maxLife: 40 + Math.random() * 30,
-                        rotationSpeed: (Math.random() - 0.5) * 0.2
-                    };
-
-                    scene.add(particle);
-                    burstParticles.push(particle);
-                }
-            }
-
-            // ─── Raycaster for Bubble Click ────────────────────────────────
-            const raycaster = new THREE.Raycaster();
-            const mouse = new THREE.Vector2();
-
-            canvas.addEventListener('click', (event) => {
-                const rect = canvas.getBoundingClientRect();
-                mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-                mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-                raycaster.setFromCamera(mouse, camera);
-
-                // Check intersection with bubbles
-                const intersects = raycaster.intersectObjects(bubbles);
-
-                if (intersects.length > 0) {
-                    const hit = intersects[0].object;
-
-                    // Create burst effect
-                    createBurst(hit.position.clone(), hit.userData.color, 45);
-
-                    // Remove the bubble
-                    scene.remove(hit);
-                    hit.geometry.dispose();
-                    hit.material.dispose();
-                    const idx = bubbles.indexOf(hit);
-                    if (idx !== -1) bubbles.splice(idx, 1);
-
-                    // Spawn 2 new bubbles after a short delay
-                    setTimeout(() => {
-                        if (bubbles.length < 25) {
-                            spawnBubble();
-                            spawnBubble();
-                        }
-                    }, 200);
-                }
-            });
-
-            // ─── Shooting Stars ────────────────────────────────────────────
-            const shootingStars = [];
-
-            function createShootingStar() {
-                const startX = (Math.random() - 0.5) * 800;
-                const startY = (Math.random() - 0.5) * 400 + 200;
-                const startZ = (Math.random() - 0.5) * 600 - 200;
-
-                const direction = new THREE.Vector3(
-                    (Math.random() - 0.5) * 2,
-                    -Math.random() * 1.5 - 0.5,
-                    (Math.random() - 0.5) * 0.5
-                ).normalize();
-
-                const length = Math.random() * 25 + 15;
-                const speed = Math.random() * 3.5 + 1.5;
-
-                const positions = new Float32Array(6);
-                positions[0] = startX; positions[1] = startY; positions[2] = startZ;
-                positions[3] = startX + direction.x * length;
-                positions[4] = startY + direction.y * length;
-                positions[5] = startZ + direction.z * length;
-
-                const geo = new THREE.BufferGeometry();
-                geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-
-                const material = new THREE.LineBasicMaterial({
-                    color: 0xffffff,
-                    transparent: true,
-                    opacity: 0,
-                    blending: THREE.AdditiveBlending
-                });
-
-                const star = new THREE.Line(geo, material);
-                star.userData = {
-                    startPos: new THREE.Vector3(startX, startY, startZ),
-                    direction: direction,
-                    speed: speed,
-                    length: length,
-                    life: 0,
-                    maxLife: 35 + Math.random() * 25
-                };
-
-                return star;
-            }
-
-            function spawnShootingStar() {
-                const star = createShootingStar();
-                scene.add(star);
-                shootingStars.push(star);
-            }
-
-            // ─── Camera ────────────────────────────────────────────────────
-            camera.position.set(0, 0, 500);
-
-            // ─── Mouse tracking (for camera + bubble repelling) ──────────
-            let mouseX = 0, mouseY = 0;
-            let mouse3D = new THREE.Vector3();
-            document.addEventListener('mousemove', (e) => {
-                mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
-                mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
-
-                // Project mouse into 3D space for bubble repelling
-                const vec = new THREE.Vector3(
-                    (e.clientX / window.innerWidth) * 2 - 1,
-                    -(e.clientY / window.innerHeight) * 2 + 1,
-                    0.5
-                );
-                vec.unproject(camera);
-                const dir = vec.sub(camera.position).normalize();
-                const dist = -camera.position.z / dir.z;
-                mouse3D.copy(camera.position).add(dir.multiplyScalar(dist));
-            });
-
-            // ─── Animation Loop ────────────────────────────────────────────
-            let time = 0;
-            let starTimer = 0;
-
-            function animate() {
-                time += 0.01;
-                requestAnimationFrame(animate);
-
-                // Rotate stars slowly
-                stars.rotation.y += 0.00025;
-                stars.rotation.x += 0.00008;
-
-                // Animate crystals
-                crystals.forEach((crystal) => {
-                    crystal.rotation.x += crystal.userData.rotSpeed.x;
-                    crystal.rotation.y += crystal.userData.rotSpeed.y;
-                    const floatOffset = Math.sin(time * crystal.userData.floatSpeed + crystal.userData.floatOffset) * crystal.userData.floatAmp;
-                    crystal.position.y = crystal.userData.baseY + floatOffset;
-                });
-
-                // Animate nebula clouds
-                nebulaClouds.forEach((cloud) => {
-                    cloud.rotation.x += cloud.userData.rotSpeed * 0.5;
-                    cloud.rotation.y += cloud.userData.rotSpeed;
-                    const offset = Math.sin(time * cloud.userData.floatSpeed + cloud.userData.floatOffset) * cloud.userData.floatAmp;
-                    cloud.position.y = cloud.userData.basePos.y + offset;
-                    cloud.material.opacity = cloud.userData.baseOpacity + Math.sin(time * cloud.userData.pulseSpeed) * 0.01;
-                });
-
-                // Animate bubbles with mouse repelling
-                const repelRadius = 60;
-                const repelStrength = 0.15;
-
-                bubbles.forEach((bubble) => {
-                    if (!bubble.userData.alive) return;
-                    bubble.rotation.x += bubble.userData.rotSpeed;
-                    bubble.rotation.y += bubble.userData.rotSpeed * 0.7;
-
-                    // Floating animation
-                    const floatOffset = Math.sin(time * bubble.userData.floatSpeed + bubble.userData.floatOffset) * bubble.userData.floatAmp;
-                    bubble.position.y = bubble.userData.basePos.y + floatOffset;
-
-                    // Mouse repelling
-                    const dx = bubble.position.x - mouse3D.x;
-                    const dy = bubble.position.y - mouse3D.y;
-                    const dz = bubble.position.z - mouse3D.z;
-                    const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
-
-                    if (dist < repelRadius && dist > 0.01) {
-                        const force = (1 - dist / repelRadius) * repelStrength;
-                        bubble.position.x += (dx / dist) * force;
-                        bubble.position.y += (dy / dist) * force;
-                        bubble.position.z += (dz / dist) * force;
-                    }
-
-                    // Subtle pulsing opacity
-                    bubble.material.opacity = bubble.userData.opacity + Math.sin(time * 0.5 + bubble.userData.floatOffset) * 0.08;
-                });
-
-                // Shooting stars
-                starTimer++;
-                if (starTimer > 100 + Math.random() * 150) {
-                    spawnShootingStar();
-                    starTimer = 0;
-                }
-
-                for (let i = shootingStars.length - 1; i >= 0; i--) {
-                    const star = shootingStars[i];
-                    const data = star.userData;
-                    data.life++;
-
-                    const progress = data.life / data.maxLife;
-                    const pos = star.geometry.attributes.position.array;
-
-                    pos[0] = data.startPos.x + data.direction.x * data.speed * data.life;
-                    pos[1] = data.startPos.y + data.direction.y * data.speed * data.life;
-                    pos[2] = data.startPos.z + data.direction.z * data.speed * data.life;
-                    pos[3] = pos[0] + data.direction.x * data.length;
-                    pos[4] = pos[1] + data.direction.y * data.length;
-                    pos[5] = pos[2] + data.direction.z * data.length;
-
-                    star.geometry.attributes.position.needsUpdate = true;
-
-                    if (progress < 0.2) {
-                        star.material.opacity = progress / 0.2;
-                    } else if (progress > 0.7) {
-                        star.material.opacity = (1 - progress) / 0.3;
-                    } else {
-                        star.material.opacity = 1;
-                    }
-
-                    if (data.life >= data.maxLife) {
-                        scene.remove(star);
-                        star.geometry.dispose();
-                        star.material.dispose();
-                        shootingStars.splice(i, 1);
-                    }
-                }
-
-                // Update burst particles
-                for (let i = burstParticles.length - 1; i >= 0; i--) {
-                    const p = burstParticles[i];
-                    const ud = p.userData;
-                    ud.life++;
-
-                    const progress = ud.life / ud.maxLife;
-
-                    // Move particle
-                    p.position.x += ud.velocity.x;
-                    p.position.y += ud.velocity.y;
-                    p.position.z += ud.velocity.z;
-
-                    // Slow down
-                    ud.velocity.multiplyScalar(0.97);
-
-                    // Rotate
-                    p.rotation.x += ud.rotationSpeed;
-                    p.rotation.y += ud.rotationSpeed;
-
-                    // Fade out
-                    p.material.opacity = 1 - progress;
-
-                    // Scale down
-                    const scale = 1 - progress * 0.5;
-                    p.scale.set(scale, scale, scale);
-
-                    if (ud.life >= ud.maxLife) {
-                        scene.remove(p);
-                        p.geometry.dispose();
-                        p.material.dispose();
-                        burstParticles.splice(i, 1);
-                    }
-                }
-
-                // Subtle camera sway
-                camera.position.x += (mouseX * 25 - camera.position.x) * 0.02;
-                camera.position.y += (-mouseY * 15 - camera.position.y) * 0.02;
-                camera.lookAt(0, 0, 0);
-
-                renderer.render(scene, camera);
-            }
-
-            animate();
-
-            // ─── Resize ────────────────────────────────────────────────────
-            window.addEventListener('resize', () => {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            });
-
-            // Spawn initial shooting stars
-            setTimeout(() => { spawnShootingStar(); }, 800);
-            setTimeout(() => { spawnShootingStar(); }, 2500);
-        })();
-
-        // ═════════════════════════════════════════════════════════════════════
-        // CONFETTI CELEBRATION
-        // ═════════════════════════════════════════════════════════════════════
-        function celebrate() {
-            const colors = [
-                '#ff6b6b', '#ff9f43', '#feca57', '#48dbfb',
-                '#0abde3', '#a29bfe', '#fd79a8', '#00d2d3',
-                '#6c5ce7', '#fdcb6e', '#e17055', '#00cec9'
-            ];
-            const container = document.body;
-            const count = 80;
-
-            for (let i = 0; i < count; i++) {
-                const el = document.createElement('div');
-                el.className = 'confetti-piece';
-                const color = colors[Math.floor(Math.random() * colors.length)];
-                const size = Math.random() * 6 + 4;
-                const isCircle = Math.random() > 0.5;
-
-                el.style.cssText = `
-                    left: ${Math.random() * 100}vw;
-                    top: -10px;
-                    width: ${size}px;
-                    height: ${isCircle ? size : size * 2.5}px;
-                    background: ${color};
-                    border-radius: ${isCircle ? '50%' : '2px'};
-                    opacity: 1;
-                    transform: rotate(${Math.random() * 360}deg);
-                `;
-
-                container.appendChild(el);
-
-                const angle = Math.random() * Math.PI * 2;
-                const velocity = Math.random() * 8 + 4;
-                const vx = Math.cos(angle) * velocity;
-                const vy = Math.sin(angle) * velocity - 6;
-                const rotation = (Math.random() - 0.5) * 15;
-                const gravity = 0.25;
-                const drag = 0.98;
-                let posX = parseFloat(el.style.left);
-                let posY = -10;
-                let velX = vx;
-                let velY = vy;
-                let rot = 0;
-                let life = 0;
-                const maxLife = 90 + Math.random() * 40;
-
-                function animateConfetti() {
-                    life++;
-                    if (life > maxLife) {
-                        el.remove();
-                        return;
-                    }
-                    velX *= drag;
-                    velY += gravity;
-                    velY *= drag;
-                    posX += velX * 0.3;
-                    posY += velY * 0.3;
-                    rot += rotation;
-
-                    el.style.left = posX + 'vw';
-                    el.style.top = posY + 'px';
-                    el.style.transform = `rotate(${rot}deg)`;
-                    el.style.opacity = Math.max(0, 1 - life / maxLife);
-
-                    requestAnimationFrame(animateConfetti);
-                }
-
-                // Stagger the start
-                setTimeout(() => requestAnimationFrame(animateConfetti), Math.random() * 200);
-            }
-        }
-
-        // ═════════════════════════════════════════════════════════════════════
-        // LOCALSTORAGE AUTOSAVE
-        // ═════════════════════════════════════════════════════════════════════
-        const STORAGE_KEY = 'ads_assignment_form';
-
-        function showToast(msg, icon) {
-            toastMsg.textContent = (icon || '✨') + ' ' + msg;
-            toast.style.display = 'flex';
-            toast.classList.remove('fade-out');
-
-            // Auto-hide after 4s
-            setTimeout(() => {
-                toast.classList.add('fade-out');
-                setTimeout(() => { toast.style.display = 'none'; }, 500);
-            }, 4000);
-        }
-
-        function loadFromStorage() {
-            try {
-                const saved = localStorage.getItem(STORAGE_KEY);
-                if (saved) {
-                    const data = JSON.parse(saved);
-                    if (data.studentName) nameInput.value = data.studentName;
-                    if (data.studentPid) pidInput.value = data.studentPid;
-                    if (data.studentCourse) courseInput.value = data.studentCourse;
-                    if (data.studentGender) genderInput.value = data.studentGender;
-
-                    const hasData = data.studentName || data.studentPid || data.studentCourse || data.studentGender;
-                    if (hasData) {
-                        showToast('Welcome back! Fields restored from your last session.');
-                        markFilled();
-                        return;
-                    }
-                }
-            } catch (e) { /* ignore */ }
-        }
-
-        function saveToStorage() {
-            try {
-                const data = {
-                    studentName: nameInput.value.trim(),
-                    studentPid: pidInput.value.trim(),
-                    studentCourse: courseInput.value.trim(),
-                    studentGender: genderInput.value.trim()
-                };
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-            } catch (e) { /* ignore */ }
-        }
-
-        function markFilled() {
-            [nameInput, pidInput, courseInput, genderInput].forEach(inp => {
-                if (inp.value.trim()) {
-                    inp.classList.add('filled');
-                } else {
-                    inp.classList.remove('filled');
-                }
-            });
-        }
-
-        // ─── Typing animation for tagline ────────────────────────────────────
-        function typeTagline() {
-            const tagline = document.querySelector('.tagline');
-            if (!tagline) return;
-            const originalHTML = tagline.innerHTML;
-            const fullText = tagline.textContent.trim();
-            tagline.innerHTML = '';
-            tagline.style.visibility = 'visible';
-
-            let charIndex = 0;
-            const cursorSpan = document.createElement('span');
-            cursorSpan.className = 'typing-cursor';
-
-            function typeNext() {
-                if (charIndex < fullText.length) {
-                    tagline.innerHTML = fullText.substring(0, charIndex + 1);
-                    tagline.appendChild(cursorSpan);
-                    charIndex++;
-                    // Speed varies for natural feel
-                    const delay = fullText[charIndex - 1] === ' ' ? 60 :
-                                 fullText[charIndex - 1] === ',' || fullText[charIndex - 1] === '—' ? 120 :
-                                 Math.random() * 30 + 25;
-                    setTimeout(typeNext, delay);
-                } else {
-                    // Restore original HTML with highlights after typing
-                    setTimeout(() => {
-                        tagline.innerHTML = originalHTML;
-                    }, 600);
-                }
-            }
-
-            // Start typing after a short delay
-            setTimeout(typeNext, 400);
-        }
-
-        // ═════════════════════════════════════════════════════════════════════
-        // FORM & API INTEGRATION
-        // ═════════════════════════════════════════════════════════════════════
-        const form = document.getElementById('assignmentForm');
-        const btnSubmit = document.getElementById('btnSubmit');
-        const nameInput = document.getElementById('studentName');
-        const pidInput = document.getElementById('studentPid');
-        const courseInput = document.getElementById('studentCourse');
-        const genderInput = document.getElementById('studentGender');
-        const toast = document.getElementById('infoToast');
-        const toastMsg = document.getElementById('toastMessage');
-        const previewSkeleton = document.getElementById('previewSkeleton');
-        const resultSection = document.getElementById('resultSection');
-        const previewContent = document.getElementById('previewContent');
-        const previewLoading = document.getElementById('previewLoading');
-        const downloadDocx = document.getElementById('downloadDocx');
-        const downloadPdf = document.getElementById('downloadPdf');
-        const successMessage = document.getElementById('successMessage');
-        const displayName = document.getElementById('displayName');
-        const displayDetails = document.getElementById('displayDetails');
-        const errorMessage = document.getElementById('errorMessage');
-
-        function validateInputs() {
-            let valid = true;
-            [nameInput, pidInput, courseInput, genderInput].forEach(inp => inp.classList.remove('error'));
-
-            if (!nameInput.value.trim()) { nameInput.classList.add('error'); valid = false; }
-            if (!pidInput.value.trim())  { pidInput.classList.add('error');  valid = false; }
-            if (!courseInput.value.trim()){ courseInput.classList.add('error'); valid = false; }
-            if (!genderInput.value.trim()){ genderInput.classList.add('error'); valid = false; }
-            return valid;
-        }
-
-        nameInput.addEventListener('input', () => { nameInput.classList.remove('error'); markFilled(); saveToStorage(); });
-        pidInput.addEventListener('input', () => { pidInput.classList.remove('error'); markFilled(); saveToStorage(); });
-        courseInput.addEventListener('input', () => { courseInput.classList.remove('error'); markFilled(); saveToStorage(); });
-        genderInput.addEventListener('input', () => { genderInput.classList.remove('error'); markFilled(); saveToStorage(); });
-
-        // ─── Ripple effect on button click ──────────────────────────────
-        btnSubmit.addEventListener('click', function(e) {
-            const rect = this.getBoundingClientRect();
-            const ripple = document.createElement('span');
-            ripple.className = 'ripple';
-            const size = Math.max(rect.width, rect.height);
-            const x = e.clientX - rect.left - size / 2;
-            const y = e.clientY - rect.top - size / 2;
-            ripple.style.cssText = `width:${size}px;height:${size}px;left:${x}px;top:${y}px;`;
-
-            let container = this.querySelector('.ripple-container');
-            if (!container) {
-                container = document.createElement('span');
-                container.className = 'ripple-container';
-                this.appendChild(container);
-            }
-            container.appendChild(ripple);
-            setTimeout(() => ripple.remove(), 700);
         });
+    })();
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            errorMessage.classList.remove('visible');
-            successMessage.classList.remove('visible');
+    // ═══════════════════════════════════════════════════════════════════════
+    // LOCAL STORAGE AUTOSAVE
+    // ═══════════════════════════════════════════════════════════════════════
+    const STORAGE_KEY = 'ads_assignment_form';
 
-            if (!validateInputs()) return;
+    function loadFromStorage() {
+        try {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                const data = JSON.parse(saved);
+                if (data.studentName)   nameInput.value   = data.studentName;
+                if (data.studentPid)    pidInput.value    = data.studentPid;
+                if (data.studentCourse) courseInput.value  = data.studentCourse;
+            }
+        } catch (e) {}
+    }
 
-            btnSubmit.classList.add('loading');
-            btnSubmit.disabled = true;
-            resultSection.classList.remove('visible');
+    function saveToStorage() {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                studentName: nameInput.value.trim(),
+                studentPid: pidInput.value.trim(),
+                studentCourse: courseInput.value.trim()
+            }));
+        } catch (e) {}
+    }
 
-            // Show shimmer skeleton while loading
-            previewContent.innerHTML = '';
-            previewSkeleton.classList.add('visible');
+    // ═══════════════════════════════════════════════════════════════════════
+    // FORM & API
+    // ═══════════════════════════════════════════════════════════════════════
+    const form          = document.getElementById('assignmentForm');
+    const btnSubmit     = document.getElementById('btnSubmit');
+    const nameInput     = document.getElementById('studentName');
+    const pidInput      = document.getElementById('studentPid');
+    const courseInput    = document.getElementById('studentCourse');
+    const resultSection = document.getElementById('resultSection');
+    const previewLoading= document.getElementById('previewLoading');
+    const pdfFrame      = document.getElementById('pdfFrame');
+    const downloadPdf   = document.getElementById('downloadPdf');
+    const successMessage= document.getElementById('successMessage');
+    const displayName   = document.getElementById('displayName');
+    const displayDetails= document.getElementById('displayDetails');
+    const errorMessage  = document.getElementById('errorMessage');
 
-            try {
-                const response = await fetch('/generate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        studentName: nameInput.value.trim(),
-                        studentPid: pidInput.value.trim(),
-                        studentCourse: courseInput.value.trim(),
-                        studentGender: genderInput.value.trim()
-                    })
-                });
+    function validateInputs() {
+        let valid = true;
+        [nameInput, pidInput, courseInput].forEach(inp => inp.classList.remove('error'));
+        if (!nameInput.value.trim())  { nameInput.classList.add('error');  valid = false; }
+        if (!pidInput.value.trim())   { pidInput.classList.add('error');   valid = false; }
+        if (!courseInput.value.trim()) { courseInput.classList.add('error'); valid = false; }
+        return valid;
+    }
 
-                const data = await response.json();
+    nameInput.addEventListener('input',   () => { nameInput.classList.remove('error');   saveToStorage(); });
+    pidInput.addEventListener('input',    () => { pidInput.classList.remove('error');    saveToStorage(); });
+    courseInput.addEventListener('input',  () => { courseInput.classList.remove('error');  saveToStorage(); });
 
-                if (!data.success) {
-                    showError(data.error || 'Failed to generate assignment');
-                    return;
-                }
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errorMessage.classList.remove('visible');
+        successMessage.classList.remove('visible');
 
-                displayName.textContent = data.studentName;
-                displayDetails.textContent =
-                    `PID: ${data.studentPid} · Course: ${data.studentCourse}`;
-                successMessage.classList.add('visible');
+        if (!validateInputs()) return;
 
-                downloadDocx.href = data.docxUrl;
+        btnSubmit.classList.add('loading');
+        btnSubmit.disabled = true;
+        resultSection.classList.remove('visible');
+        pdfFrame.style.display = 'none';
+        previewLoading.classList.add('visible');
+
+        try {
+            const response = await fetch('/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    studentName:  nameInput.value.trim(),
+                    studentPid:   pidInput.value.trim(),
+                    studentCourse: courseInput.value.trim()
+                })
+            });
+
+            const data = await response.json();
+
+            if (!data.success) {
+                showError(data.error || 'Failed to generate assignment.');
+                return;
+            }
+
+            displayName.textContent = data.studentName;
+            displayDetails.textContent = `PID: ${data.studentPid} · Program: ${data.studentCourse}`;
+            successMessage.classList.add('visible');
+
+            if (data.pdfReady && data.pdfUrl) {
                 downloadPdf.href = data.pdfUrl;
+                downloadPdf.style.display = 'flex';
 
-                if (!data.pdfReady) {
-                    downloadPdf.style.opacity = '0.4';
-                    downloadPdf.title = 'PDF not available — use DOCX or Print';
-                } else {
-                    downloadPdf.style.opacity = '1';
-                    downloadPdf.title = 'Download as PDF';
-                }
-
-                previewContent.innerHTML = data.previewHtml;
-                resultSection.classList.add('visible');
-                resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-                // Confetti celebration!
-                setTimeout(celebrate, 300);
-
-                // Show success toast
-                showToast('Assignment generated successfully!', '🎉');
-
-            } catch (err) {
-                showError('Network error. Please ensure the server is running.');
-                previewSkeleton.classList.remove('visible');
-            } finally {
-                btnSubmit.classList.remove('loading');
-                btnSubmit.disabled = false;
+                // Show PDF preview in iframe
+                pdfFrame.src = data.previewUrl;
+                pdfFrame.style.display = 'block';
+            } else {
+                downloadPdf.style.display = 'none';
+                showError('PDF could not be generated. Please check the server logs.');
             }
-        });
 
-        function showError(msg) {
-            errorMessage.textContent = msg;
-            errorMessage.classList.add('visible');
+            previewLoading.classList.remove('visible');
             resultSection.classList.add('visible');
             resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        } catch (err) {
+            showError('Network error. Please ensure the server is running.');
+            previewLoading.classList.remove('visible');
+        } finally {
+            btnSubmit.classList.remove('loading');
+            btnSubmit.disabled = false;
         }
+    });
 
-        // ─── Initialize ──────────────────────────────────────────────────────
-        // Load saved data
-        loadFromStorage();
+    function showError(msg) {
+        errorMessage.textContent = msg;
+        errorMessage.classList.add('visible');
+        previewLoading.classList.remove('visible');
+        resultSection.classList.add('visible');
+        resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 
-        // Start typing animation
-        setTimeout(typeTagline, 600);
+    // Initialize
+    loadFromStorage();
     </script>
 </body>
 </html>
