@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADS Assignment Document System</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        /* ─── CSS Variables for Theming ───────────────────────────────────── */
+        :root {
+            --primary: #007AFF;
+            --primary-light: #409CFF;
+            --primary-dark: #0055CC;
+            --secondary: #5856D6;
+            --accent: #FF2D55;
+            --bg-start: #0a0a2e;
+            --bg-end: #1a1a4e;
+            --card-bg: rgba(255, 255, 255, 0.08);
+            --card-border: rgba(255, 255, 255, 0.12);
+            --text: #FFFFFF;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --glass-bg: rgba(255, 255, 255, 0.06);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            --blur: 20px;
+            --theme-label: 'Default';
+            --success: #34C759;
+            --warning: #FF9500;
+        }
+
+        [data-theme="sunset"] {
+            --primary: #FF6B6B;
+            --primary-light: #FF8E8E;
+            --primary-dark: #CC4444;
+            --secondary: #FFA94D;
+            --accent: #FFD93D;
+            --bg-start: #2d1b0e;
+            --bg-end: #4a2c15;
+            --card-bg: rgba(255, 107, 107, 0.08);
+            --card-border: rgba(255, 107, 107, 0.15);
+            --glass-bg: rgba(255, 107, 107, 0.06);
+            --glass-border: rgba(255, 107, 107, 0.1);
+        }
+
+        [data-theme="emerald"] {
+            --primary: #34C759;
+            --primary-light: #5EDB7A;
+            --primary-dark: #248A3D;
+            --secondary: #30D158;
+            --accent: #FFD60A;
+            --bg-start: #0a2e1a;
+            --bg-end: #1a4e2e;
+            --card-bg: rgba(52, 199, 89, 0.08);
+            --card-border: rgba(52, 199, 89, 0.15);
+            --glass-bg: rgba(52, 199, 89, 0.06);
+            --glass-border: rgba(52, 199, 89, 0.1);
+        }
+
+        [data-theme="midnight"] {
+            --primary: #5E5CE6;
+            --primary-light: #7D7BEE;
+            --primary-dark: #3F3DA6;
+            --secondary: #AF52DE;
+            --accent: #FF375F;
+            --bg-start: #0a0a1e;
+            --bg-end: #0d0d2b;
+            --card-bg: rgba(94, 92, 230, 0.08);
+            --card-border: rgba(94, 92, 230, 0.15);
+            --glass-bg: rgba(94, 92, 230, 0.06);
+            --glass-border: rgba(94, 92, 230, 0.1);
+        }
+
+        [data-theme="rose"] {
+            --primary: #FF2D55;
+            --primary-light: #FF5E7A;
+            --primary-dark: #CC0033;
+            --secondary: #FF6482;
+            --accent: #FFD60A;
+            --bg-start: #2e0a1a;
+            --bg-end: #4e1525;
+            --card-bg: rgba(255, 45, 85, 0.08);
+            --card-border: rgba(255, 45, 85, 0.15);
+            --glass-bg: rgba(255, 45, 85, 0.06);
+            --glass-border: rgba(255, 45, 85, 0.1);
+        }
+
+        [data-theme="ocean"] {
+            --primary: #00C7BE;
+            --primary-light: #33D6CF;
+            --primary-dark: #009E96;
+            --secondary: #64D2FF;
+            --accent: #FFD60A;
+            --bg-start: #0a1e2e;
+            --bg-end: #0d2b3d;
+            --card-bg: rgba(0, 199, 190, 0.08);
+            --card-border: rgba(0, 199, 190, 0.15);
+            --glass-bg: rgba(0, 199, 190, 0.06);
+            --glass-border: rgba(0, 199, 190, 0.1);
+        }
+
+        /* ─── Reset & Base ────────────────────────────────────────────────── */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            color: var(--text);
+            overflow-x: hidden;
+            min-height: 100vh;
+            background: var(--bg-start);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ─── Three.js Canvas ─────────────────────────────────────────────── */
+        #space-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        /* ─── Stars overlay ───────────────────────────────────────────────── */
+        .stars-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+            background: radial-gradient(ellipse at 20% 50%, rgba(255,255,255,0.03) 0%, transparent 50%),
+                        radial-gradient(ellipse at 80% 20%, rgba(255,255,255,0.02) 0%, transparent 50%),
+                        radial-gradient(ellipse at 50% 80%, rgba(100,100,255,0.03) 0%, transparent 50%);
+        }
+
+        /* ─── Content Layout ──────────────────────────────────────────────── */
+        .content-wrapper {
+            position: relative;
+            z-index: 2;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1.5rem;
+        }
+
+        /* ─── Theme Toggle ────────────────────────────────────────────────── */
+        .theme-toggle {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 100;
+            display: flex;
+            gap: 0.5rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--blur));
+            -webkit-backdrop-filter: blur(var(--blur));
+            border: 1px solid var(--glass-border);
+            border-radius: 25px;
+            padding: 0.5rem 0.75rem;
+            box-shadow: var(--shadow);
+        }
+
+        .theme-dot {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+        }
+
+        .theme-dot:hover {
+            transform: scale(1.2);
+        }
+
+        .theme-dot.active {
+            border-color: white;
+            transform: scale(1.15);
+            box-shadow: 0 0 12px rgba(255,255,255,0.3);
+        }
+
+        .theme-dot::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        .theme-dot:hover::after {
+            opacity: 1;
+        }
+
+        /* ─── Header ──────────────────────────────────────────────────────── */
+        .header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+            animation: fadeInDown 0.8s ease-out;
+            position: relative;
+        }
+
+        .header-badge {
+            display: inline-block;
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--blur));
+            -webkit-backdrop-filter: blur(var(--blur));
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 0.35rem 1rem;
+            font-size: 0.75rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .header h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: none;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+            letter-spacing: 0.01em;
+        }
+
+        /* ─── Glass Card ──────────────────────────────────────────────────── */
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(var(--blur));
+            -webkit-backdrop-filter: blur(var(--blur));
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 560px;
+            transition: all 0.4s ease;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(255,255,255,0.2);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+        }
+
+        /* ─── Form Styles ─────────────────────────────────────────────────── */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            background: rgba(255,255,255,0.06);
+            border: 1.5px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            color: var(--text);
+            font-family: -apple-system, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .form-input::placeholder {
+            color: rgba(255,255,255,0.3);
+        }
+
+        .form-input:focus {
+            border-color: var(--primary);
+            background: rgba(255,255,255,0.1);
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15);
+        }
+
+        .form-input.error {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(255, 45, 85, 0.15);
+        }
+
+        .form-error {
+            font-size: 0.8rem;
+            color: var(--accent);
+            margin-top: 0.35rem;
+            display: none;
+        }
+
+        .form-input.error + .form-error {
+            display: block;
+        }
+
+        /* ─── Generate Button ─────────────────────────────────────────────── */
+        .btn-generate {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 14px;
+            color: white;
+            font-family: -apple-system, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+            font-size: 1.05rem;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-generate::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn-generate:hover::before {
+            left: 100%;
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 122, 255, 0.35);
+        }
+
+        .btn-generate:active {
+            transform: translateY(0);
+        }
+
+        .btn-generate:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn-generate .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2.5px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin: 0 auto;
+        }
+
+        .btn-generate.loading .btn-text {
+            display: none;
+        }
+
+        .btn-generate.loading .spinner {
+            display: block;
+        }
+
+        /* ─── Result Section ──────────────────────────────────────────────── */
+        .result-section {
+            width: 100%;
+            max-width: 900px;
+            margin-top: 2rem;
+            display: none;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .result-section.visible {
+            display: block;
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-download {
+            flex: 1;
+            min-width: 180px;
+            padding: 0.85rem 1.5rem;
+            border: 1.5px solid var(--glass-border);
+            border-radius: 14px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: var(--text);
+            font-family: -apple-system, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .btn-download:hover {
+            background: var(--card-bg);
+            border-color: var(--primary);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(0, 122, 255, 0.2);
+        }
+
+        .btn-download .icon {
+            font-size: 1.2rem;
+        }
+
+        .btn-download.pdf {
+            border-color: var(--accent);
+        }
+
+        .btn-download.pdf:hover {
+            border-color: var(--accent);
+            box-shadow: 0 4px 15px rgba(255, 45, 85, 0.2);
+        }
+
+        .btn-download.success {
+            border-color: var(--success);
+        }
+
+        .btn-download.success:hover {
+            border-color: var(--success);
+            box-shadow: 0 4px 15px rgba(52, 199, 89, 0.2);
+        }
+
+        /* ─── Preview Container ────────────────────────────────────────────── */
+        .preview-container {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .preview-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .preview-container::-webkit-scrollbar-track {
+            background: #f0f0f0;
+        }
+
+        .preview-container::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 4px;
+        }
+
+        .preview-container::-webkit-scrollbar-thumb:hover {
+            background: #aaa;
+        }
+
+        .preview-inner {
+            padding: 2.5rem;
+            color: #1d1d1f;
+            font-family: 'Times New Roman', Georgia, serif;
+            line-height: 1.6;
+        }
+
+        .preview-inner h1 {
+            font-size: 1.8rem;
+            color: #1d1d1f;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            font-family: 'Times New Roman', Georgia, serif;
+        }
+
+        .preview-inner h2 {
+            font-size: 1.5rem;
+            color: #1d1d1f;
+            font-weight: 700;
+            margin-bottom: 0.6rem;
+            font-family: 'Times New Roman', Georgia, serif;
+        }
+
+        .preview-inner h3 {
+            font-size: 1.25rem;
+            color: #1d1d1f;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            font-family: 'Times New Roman', Georgia, serif;
+        }
+
+        .preview-inner p {
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+
+        .preview-inner p.strong {
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: #1d1d1f;
+        }
+
+        .preview-inner table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+
+        .preview-inner table td {
+            border: 1px solid #ddd;
+            padding: 0.6rem 0.8rem;
+            vertical-align: top;
+            color: #333;
+        }
+
+        .preview-inner table tr:first-child td {
+            background: #f8f8f8;
+            font-weight: 600;
+            color: #1d1d1f;
+        }
+
+        /* Preview Header */
+        .preview-header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .preview-header span {
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            letter-spacing: 0.02em;
+        }
+
+        .preview-header .badge {
+            background: rgba(255,255,255,0.2);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+        }
+
+        /* ─── Success Message ─────────────────────────────────────────────── */
+        .success-message {
+            text-align: center;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background: rgba(52, 199, 89, 0.1);
+            border: 1px solid rgba(52, 199, 89, 0.2);
+            border-radius: 12px;
+            font-size: 0.9rem;
+            color: var(--success);
+            display: none;
+        }
+
+        .success-message.visible {
+            display: block;
+        }
+
+        /* ─── Error Message ───────────────────────────────────────────────── */
+        .error-message {
+            text-align: center;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background: rgba(255, 45, 85, 0.1);
+            border: 1px solid rgba(255, 45, 85, 0.2);
+            border-radius: 12px;
+            font-size: 0.9rem;
+            color: var(--accent);
+            display: none;
+        }
+
+        .error-message.visible {
+            display: block;
+        }
+
+        /* ─── Animations ──────────────────────────────────────────────────── */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(25px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* ─── Responsive ──────────────────────────────────────────────────── */
+        @media (max-width: 640px) {
+            .content-wrapper {
+                padding: 1rem;
+            }
+            .glass-card {
+                padding: 1.5rem;
+                border-radius: 16px;
+            }
+            .theme-toggle {
+                top: 0.75rem;
+                right: 0.75rem;
+                padding: 0.4rem 0.5rem;
+            }
+            .theme-dot {
+                width: 24px;
+                height: 24px;
+            }
+            .result-actions {
+                flex-direction: column;
+            }
+            .btn-download {
+                min-width: unset;
+            }
+            .preview-inner {
+                padding: 1.5rem;
+            }
+            .preview-inner table {
+                font-size: 0.75rem;
+            }
+            .preview-inner table td {
+                padding: 0.4rem 0.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.6rem;
+            }
+            .glass-card {
+                padding: 1.25rem;
+            }
+        }
+
+        /* ─── Scrollbar for main page ─────────────────────────────────────── */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.15);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.25);
+        }
+
+        /* ─── Loading Skeleton for Preview ────────────────────────────────── */
+        .preview-loading {
+            display: none;
+            padding: 3rem;
+            text-align: center;
+            background: white;
+            border-radius: 16px;
+        }
+
+        .preview-loading.visible {
+            display: block;
+        }
+
+        .preview-loading .pulse {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #eee;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        .preview-loading span {
+            color: #999;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Three.js Canvas -->
+    <canvas id="space-canvas"></canvas>
+    <div class="stars-overlay"></div>
+
+    <!-- Theme Toggle -->
+    <div class="theme-toggle" id="themeToggle">
+        <div class="theme-dot active" style="background: linear-gradient(135deg, #007AFF, #5856D6)" data-theme="default" data-tooltip="Default"></div>
+        <div class="theme-dot" style="background: linear-gradient(135deg, #FF6B6B, #FFA94D)" data-theme="sunset" data-tooltip="Sunset"></div>
+        <div class="theme-dot" style="background: linear-gradient(135deg, #34C759, #30D158)" data-theme="emerald" data-tooltip="Emerald"></div>
+        <div class="theme-dot" style="background: linear-gradient(135deg, #5E5CE6, #AF52DE)" data-theme="midnight" data-tooltip="Midnight"></div>
+        <div class="theme-dot" style="background: linear-gradient(135deg, #FF2D55, #FF6482)" data-theme="rose" data-tooltip="Rose"></div>
+        <div class="theme-dot" style="background: linear-gradient(135deg, #00C7BE, #64D2FF)" data-theme="ocean" data-tooltip="Ocean"></div>
+    </div>
+
+    <!-- Content -->
+    <div class="content-wrapper">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-badge">✨ Academic Document System v1.0</div>
+            <h1>ADS Assignment<br>Document System</h1>
+            <p>Generate your personalized academic documents with AI</p>
+        </div>
+
+        <!-- Form Card -->
+        <div class="glass-card" id="formCard">
+            <form id="assignmentForm" autocomplete="off">
+                <div class="form-group">
+                    <label class="form-label" for="studentName">Full Name</label>
+                    <input
+                        type="text"
+                        id="studentName"
+                        class="form-input"
+                        placeholder="e.g., John Appleseed"
+                        required
+                    />
+                    <div class="form-error">Please enter your full name</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="studentPid">PID Number</label>
+                    <input
+                        type="text"
+                        id="studentPid"
+                        class="form-input"
+                        placeholder="e.g., 25MSRSGIS001"
+                        required
+                    />
+                    <div class="form-error">Please enter your PID number</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="studentCode">Student Code</label>
+                    <input
+                        type="text"
+                        id="studentCode"
+                        class="form-input"
+                        placeholder="e.g., S12345"
+                        required
+                    />
+                    <div class="form-error">Please enter your student code</div>
+                </div>
+
+                <button type="submit" class="btn-generate" id="btnGenerate">
+                    <span class="btn-text">✦ Generate Assignment</span>
+                    <div class="spinner"></div>
+                </button>
+            </form>
+        </div>
+
+        <!-- Result Section -->
+        <div class="result-section" id="resultSection">
+            <div class="success-message" id="successMessage">
+                ✓ Assignment generated for <strong id="displayName"></strong>
+                <span id="displayDetails"></span>
+            </div>
+            <div class="error-message" id="errorMessage"></div>
+
+            <div class="result-actions">
+                <a class="btn-download docx" id="downloadDocx" href="#" download>
+                    <span class="icon">📄</span>
+                    Download DOCX
+                </a>
+                <a class="btn-download pdf" id="downloadPdf" href="#" download>
+                    <span class="icon">📕</span>
+                    Download PDF
+                </a>
+                <button class="btn-download success" id="printBtn" onclick="window.print()">
+                    <span class="icon">🖨️</span>
+                    Print / Save as PDF
+                </button>
+            </div>
+
+            <div class="preview-container">
+                <div class="preview-header">
+                    <span>📋 Document Preview</span>
+                    <span class="badge">Preview</span>
+                </div>
+                <div class="preview-loading" id="previewLoading">
+                    <div class="pulse"></div>
+                    <span>Loading preview...</span>
+                </div>
+                <div class="preview-inner" id="previewContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ═════════════════════════════════════════════════════════════════════
+        // Three.js Space Background
+        // ═════════════════════════════════════════════════════════════════════
+        (function initSpace() {
+            const canvas = document.getElementById('space-canvas');
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+            const renderer = new THREE.WebGLRenderer({
+                canvas,
+                alpha: true,
+                antialias: true
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+            // ─── Stars ─────────────────────────────────────────────────────
+            const starsGeometry = new THREE.BufferGeometry();
+            const starsCount = 3000;
+            const starPositions = new Float32Array(starsCount * 3);
+            const starSizes = new Float32Array(starsCount);
+            const starColors = new Float32Array(starsCount * 3);
+
+            for (let i = 0; i < starsCount; i++) {
+                const radius = Math.random() * 800 + 100;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
+
+                starPositions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+                starPositions[i * 3 + 1] = radius * Math.cos(phi);
+                starPositions[i * 3 + 2] = radius * Math.sin(phi) * Math.sin(theta);
+
+                starSizes[i] = Math.random() * 2 + 0.5;
+
+                const colorVal = 0.7 + Math.random() * 0.3;
+                starColors[i * 3] = colorVal;
+                starColors[i * 3 + 1] = colorVal;
+                starColors[i * 3 + 2] = colorVal + Math.random() * 0.2;
+            }
+
+            starsGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+            starsGeometry.setAttribute('size', new THREE.BufferAttribute(starSizes, 1));
+            starsGeometry.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
+
+            const starMaterial = new THREE.PointsMaterial({
+                size: 1.5,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.9,
+                sizeAttenuation: true,
+                blending: THREE.AdditiveBlending
+            });
+
+            const stars = new THREE.Points(starsGeometry, starMaterial);
+            scene.add(stars);
+
+            // ─── Crystals (Icosahedrons) ───────────────────────────────────
+            const crystals = [];
+            const crystalColors = [
+                0x007AFF, 0x5856D6, 0xFF2D55, 0x34C759,
+                0xFF9500, 0xAF52DE, 0x00C7BE, 0xFFD60A
+            ];
+
+            for (let i = 0; i < 25; i++) {
+                const size = Math.random() * 0.6 + 0.2;
+                const geometry = new THREE.IcosahedronGeometry(size, 0);
+                const color = crystalColors[Math.floor(Math.random() * crystalColors.length)];
+                const material = new THREE.MeshPhysicalMaterial({
+                    color: color,
+                    emissive: color,
+                    emissiveIntensity: 0.15,
+                    metalness: 0.3,
+                    roughness: 0.1,
+                    transparent: true,
+                    opacity: 0.4 + Math.random() * 0.3,
+                    wireframe: Math.random() > 0.5,
+                });
+
+                const crystal = new THREE.Mesh(geometry, material);
+
+                const radius = Math.random() * 350 + 50;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
+
+                crystal.position.x = radius * Math.sin(phi) * Math.cos(theta);
+                crystal.position.y = radius * Math.cos(phi);
+                crystal.position.z = radius * Math.sin(phi) * Math.sin(theta);
+
+                crystal.userData = {
+                    rotSpeed: { x: (Math.random() - 0.5) * 0.02, y: (Math.random() - 0.5) * 0.02 },
+                    floatSpeed: Math.random() * 0.005 + 0.002,
+                    floatAmp: Math.random() * 5 + 2,
+                    floatOffset: Math.random() * Math.PI * 2
+                };
+
+                scene.add(crystal);
+                crystals.push(crystal);
+            }
+
+            // ─── Shooting Stars ────────────────────────────────────────────
+            const shootingStars = [];
+            const shootGeo = new THREE.BufferGeometry();
+            const shootPos = new Float32Array(6); // 2 points
+            shootGeo.setAttribute('position', new THREE.BufferAttribute(shootPos, 3));
+
+            function createShootingStar() {
+                const startX = (Math.random() - 0.5) * 800;
+                const startY = (Math.random() - 0.5) * 400 + 200;
+                const startZ = (Math.random() - 0.5) * 600 - 200;
+
+                const direction = new THREE.Vector3(
+                    (Math.random() - 0.5) * 2,
+                    -Math.random() * 1.5 - 0.5,
+                    (Math.random() - 0.5) * 0.5
+                ).normalize();
+
+                const length = Math.random() * 30 + 20;
+                const speed = Math.random() * 4 + 2;
+
+                const material = new THREE.LineBasicMaterial({
+                    color: 0xffffff,
+                    transparent: true,
+                    opacity: 0,
+                    blending: THREE.AdditiveBlending
+                });
+
+                const positions = new Float32Array(6);
+                positions[0] = startX;
+                positions[1] = startY;
+                positions[2] = startZ;
+                positions[3] = startX + direction.x * length;
+                positions[4] = startY + direction.y * length;
+                positions[5] = startZ + direction.z * length;
+
+                const geo = new THREE.BufferGeometry();
+                geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+                const star = new THREE.Line(geo, material);
+                star.userData = {
+                    startPos: new THREE.Vector3(startX, startY, startZ),
+                    direction: direction,
+                    speed: speed,
+                    length: length,
+                    life: 0,
+                    maxLife: 40 + Math.random() * 30
+                };
+
+                return star;
+            }
+
+            function spawnShootingStar() {
+                const star = createShootingStar();
+                scene.add(star);
+                shootingStars.push(star);
+            }
+
+            // Spawn stars periodically
+            let starTimer = 0;
+
+            // ─── Camera Position ───────────────────────────────────────────
+            camera.position.set(0, 0, 500);
+
+            // ─── Mouse tracking ────────────────────────────────────────────
+            let mouseX = 0, mouseY = 0;
+            document.addEventListener('mousemove', (e) => {
+                mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+                mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+            });
+
+            // ─── Animation Loop ────────────────────────────────────────────
+            let time = 0;
+
+            function animate() {
+                time += 0.01;
+                requestAnimationFrame(animate);
+
+                // Rotate stars slowly
+                stars.rotation.y += 0.0003;
+                stars.rotation.x += 0.0001;
+
+                // Animate crystals
+                crystals.forEach((crystal) => {
+                    crystal.rotation.x += crystal.userData.rotSpeed.x;
+                    crystal.rotation.y += crystal.userData.rotSpeed.y;
+                    const offset = Math.sin(time * crystal.userData.floatSpeed + crystal.userData.floatOffset) * crystal.userData.floatAmp;
+                    crystal.position.y += Math.sin(time * crystal.userData.floatSpeed + crystal.userData.floatOffset) * 0.01;
+                });
+
+                // Shooting stars
+                starTimer++;
+                if (starTimer > 80 + Math.random() * 120) {
+                    spawnShootingStar();
+                    starTimer = 0;
+                }
+
+                for (let i = shootingStars.length - 1; i >= 0; i--) {
+                    const star = shootingStars[i];
+                    const data = star.userData;
+                    data.life++;
+
+                    const progress = data.life / data.maxLife;
+                    const positions = star.geometry.attributes.position.array;
+
+                    // Move start position
+                    positions[0] = data.startPos.x + data.direction.x * data.speed * data.life;
+                    positions[1] = data.startPos.y + data.direction.y * data.speed * data.life;
+                    positions[2] = data.startPos.z + data.direction.z * data.speed * data.life;
+
+                    // End position
+                    positions[3] = positions[0] + data.direction.x * data.length;
+                    positions[4] = positions[1] + data.direction.y * data.length;
+                    positions[5] = positions[2] + data.direction.z * data.length;
+
+                    star.geometry.attributes.position.needsUpdate = true;
+
+                    // Fade in/out
+                    if (progress < 0.2) {
+                        star.material.opacity = progress / 0.2;
+                    } else if (progress > 0.7) {
+                        star.material.opacity = (1 - progress) / 0.3;
+                    } else {
+                        star.material.opacity = 1;
+                    }
+
+                    if (data.life >= data.maxLife) {
+                        scene.remove(star);
+                        star.geometry.dispose();
+                        star.material.dispose();
+                        shootingStars.splice(i, 1);
+                    }
+                }
+
+                // Subtle camera sway based on mouse
+                camera.position.x = mouseX * 30;
+                camera.position.y = -mouseY * 20;
+                camera.lookAt(0, 0, 0);
+
+                renderer.render(scene, camera);
+            }
+
+            animate();
+
+            // ─── Resize ────────────────────────────────────────────────────
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+
+            // Spawn initial shooting stars
+            setTimeout(() => { spawnShootingStar(); }, 500);
+            setTimeout(() => { spawnShootingStar(); }, 2000);
+        })();
+
+        // ═════════════════════════════════════════════════════════════════════
+        // Theme Switcher
+        // ═════════════════════════════════════════════════════════════════════
+        document.querySelectorAll('.theme-dot').forEach(dot => {
+            dot.addEventListener('click', () => {
+                document.querySelectorAll('.theme-dot').forEach(d => d.classList.remove('active'));
+                dot.classList.add('active');
+                const theme = dot.dataset.theme;
+                document.documentElement.setAttribute('data-theme', theme === 'default' ? '' : theme);
+            });
+        });
+
+        // ═════════════════════════════════════════════════════════════════════
+        // Form & API Integration
+        // ═════════════════════════════════════════════════════════════════════
+        const form = document.getElementById('assignmentForm');
+        const btnGenerate = document.getElementById('btnGenerate');
+        const nameInput = document.getElementById('studentName');
+        const pidInput = document.getElementById('studentPid');
+        const codeInput = document.getElementById('studentCode');
+        const resultSection = document.getElementById('resultSection');
+        const previewContent = document.getElementById('previewContent');
+        const previewLoading = document.getElementById('previewLoading');
+        const downloadDocx = document.getElementById('downloadDocx');
+        const downloadPdf = document.getElementById('downloadPdf');
+        const successMessage = document.getElementById('successMessage');
+        const displayName = document.getElementById('displayName');
+        const errorMessage = document.getElementById('errorMessage');
+
+        // Input validation
+        function validateInputs() {
+            let valid = true;
+            if (!nameInput.value.trim()) {
+                nameInput.classList.add('error');
+                valid = false;
+            } else {
+                nameInput.classList.remove('error');
+            }
+            if (!pidInput.value.trim()) {
+                pidInput.classList.add('error');
+                valid = false;
+            } else {
+                pidInput.classList.remove('error');
+            }
+            if (!codeInput.value.trim()) {
+                codeInput.classList.add('error');
+                valid = false;
+            } else {
+                codeInput.classList.remove('error');
+            }
+            return valid;
+        }
+
+        nameInput.addEventListener('input', () => nameInput.classList.remove('error'));
+        pidInput.addEventListener('input', () => pidInput.classList.remove('error'));
+        codeInput.addEventListener('input', () => codeInput.classList.remove('error'));
+
+        // Form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            // Hide previous errors before validation
+            errorMessage.classList.remove('visible');
+            successMessage.classList.remove('visible');
+            
+            if (!validateInputs()) return;
+
+            btnGenerate.classList.add('loading');
+            btnGenerate.disabled = true;
+            resultSection.classList.remove('visible');
+
+            try {
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        studentName: nameInput.value.trim(),
+                        studentPid: pidInput.value.trim(),
+                        studentCode: codeInput.value.trim()
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    showError(data.error || 'Failed to generate assignment');
+                    return;
+                }
+
+                // Show success
+                displayName.textContent = data.studentName;
+                document.getElementById('displayDetails').textContent = 
+                    ` | PID: ${data.studentPid} | Code: ${data.studentCode}`;
+                successMessage.classList.add('visible');
+
+                // Set download links
+                downloadDocx.href = data.docxUrl;
+                downloadPdf.href = data.pdfUrl;
+
+                if (!data.pdfReady) {
+                    downloadPdf.style.opacity = '0.5';
+                    downloadPdf.title = 'PDF generation was not available - please download DOCX instead';
+                } else {
+                    downloadPdf.style.opacity = '1';
+                    downloadPdf.title = 'Download as PDF';
+                }
+
+                // Show preview
+                previewContent.innerHTML = data.previewHtml;
+
+                // Show result section
+                resultSection.classList.add('visible');
+
+                // Smooth scroll to result
+                resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            } catch (err) {
+                showError('Network error. Please ensure the server is running.');
+            } finally {
+                btnGenerate.classList.remove('loading');
+                btnGenerate.disabled = false;
+            }
+        });
+
+        function showError(msg) {
+            errorMessage.textContent = msg;
+            errorMessage.classList.add('visible');
+            resultSection.classList.add('visible');
+            resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    </script>
+</body>
+</html>
