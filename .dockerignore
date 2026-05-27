@@ -1,0 +1,17 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+env.bak/
+venv.bak/
+.git/
+.gitignore
+.dockerignore
+Dockerfile
+render.yaml
+generated/
+server_log.txt

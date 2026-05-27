@@ -219,13 +219,12 @@
             box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08);
             width: 100%;
             max-width: 520px;
-            animation: fadeInUp 0.6s ease-out;
-            transition: all 0.5s ease;
         }
 
         .glass-card:hover {
             border-color: rgba(255,255,255,0.15);
             box-shadow: 0 12px 48px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+            transform: translateY(-2px);
         }
 
         /* ═════════════════════════════════════════════════════════════════════
@@ -711,10 +710,159 @@
             color: rgba(255,255,255,0.35);
         }
 
+        /* ═════════════════════════════════════════════════════════════════════
+           RIPPLE EFFECT
+           ═════════════════════════════════════════════════════════════════════ */
+        .ripple-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            border-radius: 14px;
+            pointer-events: none;
+        }
+
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.35);
+            transform: scale(0);
+            animation: rippleAnim 0.6s ease-out forwards;
+            pointer-events: none;
+        }
+
+        @keyframes rippleAnim {
+            to { transform: scale(4); opacity: 0; }
+        }
+
+        /* ═════════════════════════════════════════════════════════════════════
+           CONFETTI
+           ═════════════════════════════════════════════════════════════════════ */
+        .confetti-piece {
+            position: fixed;
+            width: 8px;
+            height: 8px;
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        /* ═════════════════════════════════════════════════════════════════════
+           SHIMMER SKELETON LOADING
+           ═════════════════════════════════════════════════════════════════════ */
+        .preview-skeleton {
+            padding: 2.5rem;
+            display: none;
+            flex-direction: column;
+            gap: 1rem;
+            background: white;
+            border-radius: 16px;
+        }
+
+        .preview-skeleton.visible {
+            display: flex;
+        }
+
+        .skeleton-line {
+            height: 14px;
+            background: linear-gradient(90deg, #eee 25%, #f5f5f5 50%, #eee 75%);
+            background-size: 200% 100%;
+            border-radius: 6px;
+            animation: shimmer 1.5s infinite;
+        }
+
+        .skeleton-line:nth-child(1) { width: 55%; height: 22px; margin-bottom: 0.25rem; }
+        .skeleton-line:nth-child(2) { width: 75%; }
+        .skeleton-line:nth-child(3) { width: 60%; }
+        .skeleton-line:nth-child(4) { width: 85%; }
+        .skeleton-line:nth-child(5) { width: 40%; }
+        .skeleton-line:nth-child(6) { width: 70%; margin-top: 0.5rem; }
+        .skeleton-line:nth-child(7) { width: 50%; }
+        .skeleton-line:nth-child(8) { width: 90%; }
+        .skeleton-line:nth-child(9) { width: 35%; }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        /* ═════════════════════════════════════════════════════════════════════
+           TYPING CURSOR
+           ═════════════════════════════════════════════════════════════════════ */
+        .typing-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1.1em;
+            background: rgba(255,255,255,0.7);
+            margin-left: 2px;
+            animation: blink 0.8s step-end infinite;
+            vertical-align: text-bottom;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        /* ═════════════════════════════════════════════════════════════════════
+           WELCOME BACK / INFO BADGE
+           ═════════════════════════════════════════════════════════════════════ */
+        .info-toast {
+            position: fixed;
+            top: 1.2rem;
+            right: 1.2rem;
+            z-index: 10;
+            background: rgba(255,255,255,0.07);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px;
+            padding: 0.65rem 1.1rem;
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.55);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            animation: slideInRight 0.5s ease-out;
+            transition: all 0.4s ease;
+            max-width: 280px;
+            line-height: 1.4;
+        }
+
+        .info-toast .icon {
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .info-toast.fade-out {
+            opacity: 0;
+            transform: translateX(30px);
+            pointer-events: none;
+        }
+
+        /* ═════════════════════════════════════════════════════════════════════
+           FORM INPUT ENHANCEMENTS
+           ═════════════════════════════════════════════════════════════════════ */
+        .form-input.filled {
+            border-color: rgba(72, 219, 251, 0.25);
+        }
+
+        .form-input:focus {
+            border-color: rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.08);
+            box-shadow: 0 0 0 4px rgba(255,255,255,0.05), 0 0 20px rgba(162, 155, 254, 0.08);
+        }
+
         @media print {
             .btn-submit, .btn-download, .result-actions, .preview-header,
             .header-badge, #space-canvas, .success-message, .error-message,
-            .click-hint, .footer-info { display: none !important; }
+            .click-hint, .footer-info, .info-toast, .confetti-piece,
+            .ripple-container { display: none !important; }
             .result-section { margin-top: 0; }
             .preview-container { max-height: none; overflow: visible; border-radius: 0; box-shadow: none; }
             .preview-inner { padding: 0; color: #000; }
@@ -726,6 +874,13 @@
 <body>
     <!-- Three.js Canvas (background + bubbles) -->
     <canvas id="space-canvas"></canvas>
+
+    <!-- Info Toast (autosave indicator, welcome back, etc.) -->
+    <!-- Initially hidden; shown when needed by JS -->
+    <div class="info-toast" id="infoToast" style="display:none;">
+        <span class="icon">✨</span>
+        <span id="toastMessage">Welcome back! Loading your data...</span>
+    </div>
 
     <!-- Click hint -->
     <div class="click-hint">✦ Click the bubbles to burst them!</div>
@@ -786,6 +941,18 @@
                     <div class="form-error">Please enter your course name</div>
                 </div>
 
+                <div class="form-group">
+                    <label class="form-label" for="studentGender">Gender</label>
+                    <input
+                        type="text"
+                        id="studentGender"
+                        class="form-input"
+                        placeholder="e.g., Male"
+                        required
+                    />
+                    <div class="form-error">Please enter your gender</div>
+                </div>
+
                 <button type="submit" class="btn-submit" id="btnSubmit">
                     <span class="btn-text">✦ Submit</span>
                     <div class="spinner"></div>
@@ -825,6 +992,17 @@
                 <div class="preview-loading" id="previewLoading">
                     <div class="pulse"></div>
                     <span>Loading preview...</span>
+                </div>
+                <div class="preview-skeleton" id="previewSkeleton">
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line"></div>
                 </div>
                 <div class="preview-inner" id="previewContent"></div>
             </div>
@@ -881,9 +1059,7 @@
 
             starsGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
             starsGeometry.setAttribute('size', new THREE.BufferAttribute(starSizes, 1));
-            starsGeometry.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
-
-            const starMaterial = new THREE.PointsMaterial({
+            starsGeometry.setAttribute('color', new THREE.BufferAttribute(starColors, 3));                const starMaterial = new THREE.PointsMaterial({
                 size: 1.8,
                 vertexColors: true,
                 transparent: true,
@@ -894,6 +1070,51 @@
 
             const stars = new THREE.Points(starsGeometry, starMaterial);
             scene.add(stars);
+
+            // ─── Nebula clouds (large transparent colored spheres) ───────
+            const nebulaColors = [
+                0x6c5ce7, 0xa29bfe, 0xfd79a8, 0x48dbfb,
+                0x0abde3, 0xff6b6b, 0xfeca57
+            ];
+            const nebulaClouds = [];
+
+            for (let i = 0; i < 6; i++) {
+                const size = Math.random() * 120 + 60;
+                const geo = new THREE.SphereGeometry(size, 20, 20);
+                const color = nebulaColors[i % nebulaColors.length];
+                const mat = new THREE.MeshBasicMaterial({
+                    color: color,
+                    transparent: true,
+                    opacity: 0.025 + Math.random() * 0.035,
+                    blending: THREE.AdditiveBlending,
+                    depthWrite: false,
+                    side: THREE.DoubleSide
+                });
+
+                const cloud = new THREE.Mesh(geo, mat);
+                const radius = Math.random() * 300 + 50;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
+
+                cloud.position.set(
+                    radius * Math.sin(phi) * Math.cos(theta),
+                    radius * Math.cos(phi),
+                    radius * Math.sin(phi) * Math.sin(theta) - 100
+                );
+
+                cloud.userData = {
+                    rotSpeed: (Math.random() - 0.5) * 0.002,
+                    floatSpeed: Math.random() * 0.002 + 0.0005,
+                    floatAmp: Math.random() * 5 + 2,
+                    floatOffset: Math.random() * Math.PI * 2,
+                    basePos: cloud.position.clone(),
+                    pulseSpeed: Math.random() * 0.005 + 0.002,
+                    baseOpacity: mat.opacity
+                };
+
+                scene.add(cloud);
+                nebulaClouds.push(cloud);
+            }
 
             // ─── Crystals (Icosahedrons) ───────────────────────────────────
             const crystals = [];
@@ -1008,7 +1229,6 @@
             // ─── Burst Effect ──────────────────────────────────────────────
             function createBurst(position, color, count) {
                 const count_ = count || 40;
-                const colorObj = new THREE.Color(color);
 
                 for (let i = 0; i < count_; i++) {
                     const size = Math.random() * 0.15 + 0.03;
@@ -1136,11 +1356,23 @@
             // ─── Camera ────────────────────────────────────────────────────
             camera.position.set(0, 0, 500);
 
-            // ─── Mouse tracking ────────────────────────────────────────────
+            // ─── Mouse tracking (for camera + bubble repelling) ──────────
             let mouseX = 0, mouseY = 0;
+            let mouse3D = new THREE.Vector3();
             document.addEventListener('mousemove', (e) => {
                 mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
                 mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+
+                // Project mouse into 3D space for bubble repelling
+                const vec = new THREE.Vector3(
+                    (e.clientX / window.innerWidth) * 2 - 1,
+                    -(e.clientY / window.innerHeight) * 2 + 1,
+                    0.5
+                );
+                vec.unproject(camera);
+                const dir = vec.sub(camera.position).normalize();
+                const dist = -camera.position.z / dir.z;
+                mouse3D.copy(camera.position).add(dir.multiplyScalar(dist));
             });
 
             // ─── Animation Loop ────────────────────────────────────────────
@@ -1163,14 +1395,40 @@
                     crystal.position.y = crystal.userData.baseY + floatOffset;
                 });
 
-                // Animate bubbles
+                // Animate nebula clouds
+                nebulaClouds.forEach((cloud) => {
+                    cloud.rotation.x += cloud.userData.rotSpeed * 0.5;
+                    cloud.rotation.y += cloud.userData.rotSpeed;
+                    const offset = Math.sin(time * cloud.userData.floatSpeed + cloud.userData.floatOffset) * cloud.userData.floatAmp;
+                    cloud.position.y = cloud.userData.basePos.y + offset;
+                    cloud.material.opacity = cloud.userData.baseOpacity + Math.sin(time * cloud.userData.pulseSpeed) * 0.01;
+                });
+
+                // Animate bubbles with mouse repelling
+                const repelRadius = 60;
+                const repelStrength = 0.15;
+
                 bubbles.forEach((bubble) => {
                     if (!bubble.userData.alive) return;
                     bubble.rotation.x += bubble.userData.rotSpeed;
                     bubble.rotation.y += bubble.userData.rotSpeed * 0.7;
 
+                    // Floating animation
                     const floatOffset = Math.sin(time * bubble.userData.floatSpeed + bubble.userData.floatOffset) * bubble.userData.floatAmp;
                     bubble.position.y = bubble.userData.basePos.y + floatOffset;
+
+                    // Mouse repelling
+                    const dx = bubble.position.x - mouse3D.x;
+                    const dy = bubble.position.y - mouse3D.y;
+                    const dz = bubble.position.z - mouse3D.z;
+                    const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+
+                    if (dist < repelRadius && dist > 0.01) {
+                        const force = (1 - dist / repelRadius) * repelStrength;
+                        bubble.position.x += (dx / dist) * force;
+                        bubble.position.y += (dy / dist) * force;
+                        bubble.position.z += (dz / dist) * force;
+                    }
 
                     // Subtle pulsing opacity
                     bubble.material.opacity = bubble.userData.opacity + Math.sin(time * 0.5 + bubble.userData.floatOffset) * 0.08;
@@ -1274,6 +1532,173 @@
         })();
 
         // ═════════════════════════════════════════════════════════════════════
+        // CONFETTI CELEBRATION
+        // ═════════════════════════════════════════════════════════════════════
+        function celebrate() {
+            const colors = [
+                '#ff6b6b', '#ff9f43', '#feca57', '#48dbfb',
+                '#0abde3', '#a29bfe', '#fd79a8', '#00d2d3',
+                '#6c5ce7', '#fdcb6e', '#e17055', '#00cec9'
+            ];
+            const container = document.body;
+            const count = 80;
+
+            for (let i = 0; i < count; i++) {
+                const el = document.createElement('div');
+                el.className = 'confetti-piece';
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                const size = Math.random() * 6 + 4;
+                const isCircle = Math.random() > 0.5;
+
+                el.style.cssText = `
+                    left: ${Math.random() * 100}vw;
+                    top: -10px;
+                    width: ${size}px;
+                    height: ${isCircle ? size : size * 2.5}px;
+                    background: ${color};
+                    border-radius: ${isCircle ? '50%' : '2px'};
+                    opacity: 1;
+                    transform: rotate(${Math.random() * 360}deg);
+                `;
+
+                container.appendChild(el);
+
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = Math.random() * 8 + 4;
+                const vx = Math.cos(angle) * velocity;
+                const vy = Math.sin(angle) * velocity - 6;
+                const rotation = (Math.random() - 0.5) * 15;
+                const gravity = 0.25;
+                const drag = 0.98;
+                let posX = parseFloat(el.style.left);
+                let posY = -10;
+                let velX = vx;
+                let velY = vy;
+                let rot = 0;
+                let life = 0;
+                const maxLife = 90 + Math.random() * 40;
+
+                function animateConfetti() {
+                    life++;
+                    if (life > maxLife) {
+                        el.remove();
+                        return;
+                    }
+                    velX *= drag;
+                    velY += gravity;
+                    velY *= drag;
+                    posX += velX * 0.3;
+                    posY += velY * 0.3;
+                    rot += rotation;
+
+                    el.style.left = posX + 'vw';
+                    el.style.top = posY + 'px';
+                    el.style.transform = `rotate(${rot}deg)`;
+                    el.style.opacity = Math.max(0, 1 - life / maxLife);
+
+                    requestAnimationFrame(animateConfetti);
+                }
+
+                // Stagger the start
+                setTimeout(() => requestAnimationFrame(animateConfetti), Math.random() * 200);
+            }
+        }
+
+        // ═════════════════════════════════════════════════════════════════════
+        // LOCALSTORAGE AUTOSAVE
+        // ═════════════════════════════════════════════════════════════════════
+        const STORAGE_KEY = 'ads_assignment_form';
+
+        function showToast(msg, icon) {
+            toastMsg.textContent = (icon || '✨') + ' ' + msg;
+            toast.style.display = 'flex';
+            toast.classList.remove('fade-out');
+
+            // Auto-hide after 4s
+            setTimeout(() => {
+                toast.classList.add('fade-out');
+                setTimeout(() => { toast.style.display = 'none'; }, 500);
+            }, 4000);
+        }
+
+        function loadFromStorage() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    if (data.studentName) nameInput.value = data.studentName;
+                    if (data.studentPid) pidInput.value = data.studentPid;
+                    if (data.studentCourse) courseInput.value = data.studentCourse;
+                    if (data.studentGender) genderInput.value = data.studentGender;
+
+                    const hasData = data.studentName || data.studentPid || data.studentCourse || data.studentGender;
+                    if (hasData) {
+                        showToast('Welcome back! Fields restored from your last session.');
+                        markFilled();
+                        return;
+                    }
+                }
+            } catch (e) { /* ignore */ }
+        }
+
+        function saveToStorage() {
+            try {
+                const data = {
+                    studentName: nameInput.value.trim(),
+                    studentPid: pidInput.value.trim(),
+                    studentCourse: courseInput.value.trim(),
+                    studentGender: genderInput.value.trim()
+                };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            } catch (e) { /* ignore */ }
+        }
+
+        function markFilled() {
+            [nameInput, pidInput, courseInput, genderInput].forEach(inp => {
+                if (inp.value.trim()) {
+                    inp.classList.add('filled');
+                } else {
+                    inp.classList.remove('filled');
+                }
+            });
+        }
+
+        // ─── Typing animation for tagline ────────────────────────────────────
+        function typeTagline() {
+            const tagline = document.querySelector('.tagline');
+            if (!tagline) return;
+            const originalHTML = tagline.innerHTML;
+            const fullText = tagline.textContent.trim();
+            tagline.innerHTML = '';
+            tagline.style.visibility = 'visible';
+
+            let charIndex = 0;
+            const cursorSpan = document.createElement('span');
+            cursorSpan.className = 'typing-cursor';
+
+            function typeNext() {
+                if (charIndex < fullText.length) {
+                    tagline.innerHTML = fullText.substring(0, charIndex + 1);
+                    tagline.appendChild(cursorSpan);
+                    charIndex++;
+                    // Speed varies for natural feel
+                    const delay = fullText[charIndex - 1] === ' ' ? 60 :
+                                 fullText[charIndex - 1] === ',' || fullText[charIndex - 1] === '—' ? 120 :
+                                 Math.random() * 30 + 25;
+                    setTimeout(typeNext, delay);
+                } else {
+                    // Restore original HTML with highlights after typing
+                    setTimeout(() => {
+                        tagline.innerHTML = originalHTML;
+                    }, 600);
+                }
+            }
+
+            // Start typing after a short delay
+            setTimeout(typeNext, 400);
+        }
+
+        // ═════════════════════════════════════════════════════════════════════
         // FORM & API INTEGRATION
         // ═════════════════════════════════════════════════════════════════════
         const form = document.getElementById('assignmentForm');
@@ -1281,6 +1706,10 @@
         const nameInput = document.getElementById('studentName');
         const pidInput = document.getElementById('studentPid');
         const courseInput = document.getElementById('studentCourse');
+        const genderInput = document.getElementById('studentGender');
+        const toast = document.getElementById('infoToast');
+        const toastMsg = document.getElementById('toastMessage');
+        const previewSkeleton = document.getElementById('previewSkeleton');
         const resultSection = document.getElementById('resultSection');
         const previewContent = document.getElementById('previewContent');
         const previewLoading = document.getElementById('previewLoading');
@@ -1293,17 +1722,39 @@
 
         function validateInputs() {
             let valid = true;
-            [nameInput, pidInput, courseInput].forEach(inp => inp.classList.remove('error'));
+            [nameInput, pidInput, courseInput, genderInput].forEach(inp => inp.classList.remove('error'));
 
             if (!nameInput.value.trim()) { nameInput.classList.add('error'); valid = false; }
             if (!pidInput.value.trim())  { pidInput.classList.add('error');  valid = false; }
             if (!courseInput.value.trim()){ courseInput.classList.add('error'); valid = false; }
+            if (!genderInput.value.trim()){ genderInput.classList.add('error'); valid = false; }
             return valid;
         }
 
-        nameInput.addEventListener('input', () => nameInput.classList.remove('error'));
-        pidInput.addEventListener('input', () => pidInput.classList.remove('error'));
-        courseInput.addEventListener('input', () => courseInput.classList.remove('error'));
+        nameInput.addEventListener('input', () => { nameInput.classList.remove('error'); markFilled(); saveToStorage(); });
+        pidInput.addEventListener('input', () => { pidInput.classList.remove('error'); markFilled(); saveToStorage(); });
+        courseInput.addEventListener('input', () => { courseInput.classList.remove('error'); markFilled(); saveToStorage(); });
+        genderInput.addEventListener('input', () => { genderInput.classList.remove('error'); markFilled(); saveToStorage(); });
+
+        // ─── Ripple effect on button click ──────────────────────────────
+        btnSubmit.addEventListener('click', function(e) {
+            const rect = this.getBoundingClientRect();
+            const ripple = document.createElement('span');
+            ripple.className = 'ripple';
+            const size = Math.max(rect.width, rect.height);
+            const x = e.clientX - rect.left - size / 2;
+            const y = e.clientY - rect.top - size / 2;
+            ripple.style.cssText = `width:${size}px;height:${size}px;left:${x}px;top:${y}px;`;
+
+            let container = this.querySelector('.ripple-container');
+            if (!container) {
+                container = document.createElement('span');
+                container.className = 'ripple-container';
+                this.appendChild(container);
+            }
+            container.appendChild(ripple);
+            setTimeout(() => ripple.remove(), 700);
+        });
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -1316,6 +1767,10 @@
             btnSubmit.disabled = true;
             resultSection.classList.remove('visible');
 
+            // Show shimmer skeleton while loading
+            previewContent.innerHTML = '';
+            previewSkeleton.classList.add('visible');
+
             try {
                 const response = await fetch('/generate', {
                     method: 'POST',
@@ -1323,7 +1778,8 @@
                     body: JSON.stringify({
                         studentName: nameInput.value.trim(),
                         studentPid: pidInput.value.trim(),
-                        studentCourse: courseInput.value.trim()
+                        studentCourse: courseInput.value.trim(),
+                        studentGender: genderInput.value.trim()
                     })
                 });
 
@@ -1354,8 +1810,15 @@
                 resultSection.classList.add('visible');
                 resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
+                // Confetti celebration!
+                setTimeout(celebrate, 300);
+
+                // Show success toast
+                showToast('Assignment generated successfully!', '🎉');
+
             } catch (err) {
                 showError('Network error. Please ensure the server is running.');
+                previewSkeleton.classList.remove('visible');
             } finally {
                 btnSubmit.classList.remove('loading');
                 btnSubmit.disabled = false;
@@ -1368,6 +1831,13 @@
             resultSection.classList.add('visible');
             resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
+
+        // ─── Initialize ──────────────────────────────────────────────────────
+        // Load saved data
+        loadFromStorage();
+
+        // Start typing animation
+        setTimeout(typeTagline, 600);
     </script>
 </body>
 </html>

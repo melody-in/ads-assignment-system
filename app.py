@@ -30,7 +30,8 @@ def load_settings():
         "template": "",
         "findName": "N. Akshit Vinay",
         "findPid": "25MSRSGIS001",
-        "findCourse": "M.Sc. GIS & Remote Sensing"
+        "findCourse": "M.Sc. GIS & Remote Sensing",
+        "findGender": "Male"
     }
 
     if not os.path.exists(SETTINGS_PATH):
@@ -88,7 +89,7 @@ def find_template():
 
 # ─── DOCX Modification (Pure Find-and-Replace) ───────────────────────────────
 
-def modify_docx_template(student_name, student_pid, student_course, output_path=None):
+def modify_docx_template(student_name, student_pid, student_course, student_gender, output_path=None):
     """
     Modify the DOCX template by performing a pure find-and-replace.
     Only the EXACT strings specified in settings are replaced — nothing else changes.
@@ -101,6 +102,7 @@ def modify_docx_template(student_name, student_pid, student_course, output_path=
     find_name = settings.get('findName', 'N. Akshit Vinay')
     find_pid = settings.get('findPid', '25MSRSGIS001')
     find_course = settings.get('findCourse', 'M.Sc. GIS & Remote Sensing')
+    find_gender = settings.get('findGender', 'Male')
 
     doc = Document(template_path)
 
@@ -113,6 +115,8 @@ def modify_docx_template(student_name, student_pid, student_course, output_path=
                 run.text = run.text.replace(find_pid, student_pid)
             if find_course in run.text:
                 run.text = run.text.replace(find_course, student_course)
+            if find_gender in run.text:
+                run.text = run.text.replace(find_gender, student_gender)
 
     # ── Replace in all tables ──
     for table in doc.tables:
@@ -126,6 +130,8 @@ def modify_docx_template(student_name, student_pid, student_course, output_path=
                             run.text = run.text.replace(find_pid, student_pid)
                         if find_course in run.text:
                             run.text = run.text.replace(find_course, student_course)
+                        if find_gender in run.text:
+                            run.text = run.text.replace(find_gender, student_gender)
 
     if output_path:
         doc.save(output_path)
@@ -365,9 +371,10 @@ def generate_assignment():
     student_name = data.get('studentName', '').strip()
     student_pid = data.get('studentPid', '').strip()
     student_course = data.get('studentCourse', '').strip()
+    student_gender = data.get('studentGender', '').strip()
 
-    if not student_name or not student_pid or not student_course:
-        return jsonify({'error': 'Please provide student name, PID, and course name.'}), 400
+    if not student_name or not student_pid or not student_course or not student_gender:
+        return jsonify({'error': 'Please provide student name, PID, course name, and gender.'}), 400
 
     file_id = uuid.uuid4().hex[:12]
     docx_path = os.path.join(OUTPUT_DIR, f'assignment_{file_id}.docx')
@@ -379,7 +386,7 @@ def generate_assignment():
         if not tmpl:
             return jsonify({'error': 'No DOCX template found. Place a .docx file in the "documents/" folder.'}), 400
 
-        modify_docx_template(student_name, student_pid, student_course, docx_path)
+        modify_docx_template(student_name, student_pid, student_course, student_gender, docx_path)
 
         pdf_ready = False
         try:
@@ -399,7 +406,8 @@ def generate_assignment():
             'pdfReady': pdf_ready,
             'studentName': student_name,
             'studentPid': student_pid,
-            'studentCourse': student_course
+            'studentCourse': student_course,
+            'studentGender': student_gender
         })
 
     except Exception as e:
