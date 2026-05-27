@@ -692,9 +692,29 @@
             .header-badge { font-size: 0.62rem; }
         }
 
+        /* ─── Footer / Info ─────────────────────────────────────────────── */
+        .footer-info {
+            margin-top: 2.5rem;
+            text-align: center;
+            font-size: 0.72rem;
+            color: rgba(255,255,255,0.25);
+            line-height: 1.7;
+            max-width: 480px;
+        }
+
+        .footer-info code {
+            background: rgba(255,255,255,0.06);
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            font-family: 'SF Mono', 'Menlo', monospace;
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.35);
+        }
+
         @media print {
             .btn-submit, .btn-download, .result-actions, .preview-header,
-            .header-badge, #space-canvas, .success-message, .error-message { display: none !important; }
+            .header-badge, #space-canvas, .success-message, .error-message,
+            .click-hint, .footer-info { display: none !important; }
             .result-section { margin-top: 0; }
             .preview-container { max-height: none; overflow: visible; border-radius: 0; box-shadow: none; }
             .preview-inner { padding: 0; color: #000; }
@@ -809,6 +829,12 @@
                 <div class="preview-inner" id="previewContent"></div>
             </div>
         </div>
+        <!-- Footer -->
+        <div class="footer-info">
+            📁 To use a different document, place your <code>.docx</code> file in the
+            <code>documents/</code> folder and update <code>settings.json</code>.
+            Only student name, PID, and course are replaced — everything else stays untouched.
+        </div>
     </div>
 
     <script>
@@ -826,8 +852,6 @@
             });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            renderer.sortObjects = true;
-
             // ─── Stars ─────────────────────────────────────────────────────
             const starsGeometry = new THREE.BufferGeometry();
             const starsCount = 4000;
