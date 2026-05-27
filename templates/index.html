@@ -783,19 +783,19 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" for="studentCode">Student Code</label>
+                    <label class="form-label" for="studentCourse">Course</label>
                     <input
                         type="text"
-                        id="studentCode"
+                        id="studentCourse"
                         class="form-input"
-                        placeholder="e.g., S12345"
+                        placeholder="e.g., M.Sc. GIS & Remote Sensing"
                         required
                     />
-                    <div class="form-error">Please enter your student code</div>
+                    <div class="form-error">Please enter your course name</div>
                 </div>
 
                 <button type="submit" class="btn-generate" id="btnGenerate">
-                    <span class="btn-text">✦ Generate Assignment</span>
+                    <span class="btn-text">✦ Submit</span>
                     <div class="spinner"></div>
                 </button>
             </form>
@@ -1111,7 +1111,7 @@
         const btnGenerate = document.getElementById('btnGenerate');
         const nameInput = document.getElementById('studentName');
         const pidInput = document.getElementById('studentPid');
-        const codeInput = document.getElementById('studentCode');
+        const courseInput = document.getElementById('studentCourse');
         const resultSection = document.getElementById('resultSection');
         const previewContent = document.getElementById('previewContent');
         const previewLoading = document.getElementById('previewLoading');
@@ -1136,18 +1136,18 @@
             } else {
                 pidInput.classList.remove('error');
             }
-            if (!codeInput.value.trim()) {
-                codeInput.classList.add('error');
+            if (!courseInput.value.trim()) {
+                courseInput.classList.add('error');
                 valid = false;
             } else {
-                codeInput.classList.remove('error');
+                courseInput.classList.remove('error');
             }
             return valid;
         }
 
         nameInput.addEventListener('input', () => nameInput.classList.remove('error'));
         pidInput.addEventListener('input', () => pidInput.classList.remove('error'));
-        codeInput.addEventListener('input', () => codeInput.classList.remove('error'));
+        courseInput.addEventListener('input', () => courseInput.classList.remove('error'));
 
         // Form submission
         form.addEventListener('submit', async (e) => {
@@ -1169,7 +1169,7 @@
                     body: JSON.stringify({
                         studentName: nameInput.value.trim(),
                         studentPid: pidInput.value.trim(),
-                        studentCode: codeInput.value.trim()
+                        studentCourse: courseInput.value.trim()
                     })
                 });
 
@@ -1183,7 +1183,7 @@
                 // Show success
                 displayName.textContent = data.studentName;
                 document.getElementById('displayDetails').textContent = 
-                    ` | PID: ${data.studentPid} | Code: ${data.studentCode}`;
+                    ` | PID: ${data.studentPid} | Course: ${data.studentCourse}`;
                 successMessage.classList.add('visible');
 
                 // Set download links

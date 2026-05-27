@@ -24,8 +24,8 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # ─── DOCX Modification ───────────────────────────────────────────────────────
 
-def modify_docx_template(student_name, student_pid, student_code, output_path=None):
-    """Modify the DOCX template by replacing student name, PID, and adding code."""
+def modify_docx_template(student_name, student_pid, student_course, output_path=None):
+    """Modify the DOCX template by replacing student name, PID, and adding course."""
     doc = Document(TEMPLATE_PATH)
 
     if doc.tables and len(doc.tables) > 0:
@@ -41,9 +41,9 @@ def modify_docx_template(student_name, student_pid, student_code, output_path=No
                     run.text = run.text.replace('25MSRSGIS001', student_pid)
                     pid_para_index = pi
 
-        # Add student code as a new paragraph at the end of the cell
-        if student_code and pid_para_index is not None:
-            cell.add_paragraph(f'Code: {student_code}')
+        # Add student course as a new paragraph at the end of the cell
+        if student_course and pid_para_index is not None:
+            cell.add_paragraph(f'Course: {student_course}')
 
     if output_path:
         doc.save(output_path)
@@ -278,17 +278,17 @@ def generate_assignment():
     data = request.get_json()
     student_name = data.get('studentName', '').strip()
     student_pid = data.get('studentPid', '').strip()
-    student_code = data.get('studentCode', '').strip()
+    student_course = data.get('studentCourse', '').strip()
 
-    if not student_name or not student_pid or not student_code:
-        return jsonify({'error': 'Please provide student name, PID, and student code.'}), 400
+    if not student_name or not student_pid or not student_course:
+        return jsonify({'error': 'Please provide student name, PID, and course name.'}), 400
 
     file_id = uuid.uuid4().hex[:12]
     docx_path = os.path.join(OUTPUT_DIR, f'assignment_{file_id}.docx')
     pdf_path = os.path.join(OUTPUT_DIR, f'assignment_{file_id}.pdf')
 
     try:
-        modify_docx_template(student_name, student_pid, student_code, docx_path)
+        modify_docx_template(student_name, student_pid, student_course, docx_path)
 
         pdf_ready = False
         try:
@@ -308,7 +308,7 @@ def generate_assignment():
             'pdfReady': pdf_ready,
             'studentName': student_name,
             'studentPid': student_pid,
-            'studentCode': student_code
+            'studentCourse': student_course
         })
 
     except Exception as e:
