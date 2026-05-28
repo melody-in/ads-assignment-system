@@ -4,13 +4,49 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ADS — Assignment Document System</title>
-    <meta name="description" content="ADS — Generate your personalized assignment with one click.">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Inter:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <meta name="description" content="ADS — Generate your personalized assignment with one click. Enter your details and get a pixel-perfect PDF instantly.">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <style>
+    /* ══════════════════════════════════════════════════════════════
+       EMBEDDED HANDWRITING FONT (via @font-face with local fallbacks)
+       Using system cursive + a custom SVG-rendered signature approach
+       ══════════════════════════════════════════════════════════════ */
+
+    /* Handwriting font — uses Segoe Script (Windows built-in) with cursive fallback */
+    @font-face {
+        font-family: 'HandwriteLocal';
+        src: local('Segoe Script'), local('Segoe Script Bold'), local('Comic Sans MS'), local('Bradley Hand ITC'), local('Lucida Handwriting');
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+    }
+
+    @font-face {
+        font-family: 'HandwriteLocal';
+        src: local('Segoe Script Bold'), local('Segoe Script'), local('Comic Sans MS Bold');
+        font-weight: 700;
+        font-style: normal;
+        font-display: swap;
+    }
+
+    /* Stylus handwriting for tagline — Ink Free (Windows 10+) with cursive fallback */
+    @font-face {
+        font-family: 'StylusWrite';
+        src: local('Ink Free'), local('InkFree'), local('Segoe Script'), local('Bradley Hand ITC'), local('Lucida Handwriting');
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+    }
+
+    @font-face {
+        font-family: 'StylusWrite';
+        src: local('Ink Free Bold'), local('Segoe Script Bold'), local('Bradley Hand ITC Bold');
+        font-weight: 700;
+        font-style: normal;
+        font-display: swap;
+    }
+
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
@@ -19,15 +55,20 @@
         --bg: #04040f;
         --glass: rgba(255,255,255,0.035);
         --border: rgba(255,255,255,0.07);
+        /* Tagline colors */
+        --pale-green: #98fb98;
+        --royal-blue: #4169e1;
+        --cadbury-maroon: #6b3b5b;
     }
 
     body {
-        font-family: 'Inter', sans-serif;
+        font-family: 'Segoe UI', 'Segoe UI Variable', 'Calibri', 'Trebuchet MS', 'Arial', sans-serif;
         color: #fff;
         background: var(--bg);
         overflow-x: hidden;
         min-height: 100vh;
         -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
     }
 
     /* ── CANVAS ─────────────────────────────────────────────────── */
@@ -57,10 +98,10 @@
     }
 
     .logo {
-        font-family: 'Dancing Script', cursive;
+        font-family: 'Segoe UI', 'Segoe UI Variable', 'Calibri', sans-serif;
         font-size: clamp(3.2rem, 9vw, 6rem);
         font-weight: 700;
-        letter-spacing: -0.01em;
+        letter-spacing: 0.04em;
         line-height: 1;
         background: linear-gradient(135deg, #e0e7ff 0%, #c4b5fd 40%, #818cf8 70%, #6366f1 100%);
         -webkit-background-clip: text;
@@ -69,30 +110,73 @@
         filter: drop-shadow(0 0 30px rgba(129,140,248,0.25));
     }
 
+    /* ══════════════════════════════════════════════════════════════
+       SIGNATURE WATERMARK — transparent handwritten in background space
+       Uses Segoe Script / Ink Free (Windows built-in) so no web fetch
+       ══════════════════════════════════════════════════════════════ */
+    .sig-watermark {
+        position: fixed;
+        bottom: 5%;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1;
+        pointer-events: none;
+        user-select: none;
+        white-space: nowrap;
+    }
+
+    .sig-watermark svg {
+        width: clamp(200px, 40vw, 500px);
+        height: auto;
+        opacity: 0.12;
+        filter: blur(0.2px);
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       TAGLINE — Stylus handwriting, cloud-like colorful typing
+       Colors: Pale Green, Royal Blue, Cadbury Maroon
+       ══════════════════════════════════════════════════════════════ */
     .tagline-handwritten {
-        font-family: 'Dancing Script', cursive;
-        font-size: clamp(1.4rem, 4vw, 2.2rem);
+        font-family: 'StylusWrite', 'Ink Free', 'Segoe Script', 'Bradley Hand ITC', cursive;
+        font-size: clamp(1.4rem, 3.8vw, 2.2rem);
         font-weight: 600;
-        margin-top: 0.5rem;
-        background: linear-gradient(135deg, #7ac5b4, #4169e1, #6b3b5b); /* Opal Green, Royal Blue, Cadbury Maroon */
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
+        margin-top: 0.6rem;
         display: flex;
         justify-content: center;
         align-items: center;
-        min-height: 2em;
+        min-height: 2.4em;
+        letter-spacing: 0.02em;
+        transition: opacity 0.8s ease;
     }
-    
+
+    /* Each character gets its own color class */
+    .tagline-handwritten .tchar {
+        display: inline-block;
+        opacity: 0;
+        transform: translateY(6px);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        text-shadow: 0 0 18px currentColor;
+    }
+    .tagline-handwritten .tchar.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    .tagline-handwritten .tchar.fading {
+        opacity: 0;
+        transform: translateY(-8px);
+        transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
     .tagline-handwritten .cursor {
         display: inline-block;
-        width: 3px;
+        width: 2px;
         height: 1.2em;
-        background: rgba(65, 105, 225, 0.8);
-        margin-left: 6px;
-        animation: blink 0.8s step-end infinite;
+        background: rgba(152, 251, 152, 0.7);
+        margin-left: 4px;
+        animation: blink 1s step-end infinite;
+        vertical-align: text-bottom;
     }
-    
+
     @keyframes blink { 50% { opacity: 0; } }
 
     /* ── GLASS CARD ─────────────────────────────────────────────── */
@@ -120,6 +204,7 @@
 
     .lbl {
         display: block;
+        font-family: 'Segoe UI', 'Calibri', sans-serif;
         font-size: 0.65rem;
         font-weight: 600;
         letter-spacing: 0.12em;
@@ -135,7 +220,7 @@
         border: 1.5px solid rgba(255,255,255,0.07);
         border-radius: 11px;
         color: #fff;
-        font-family: 'Inter', sans-serif;
+        font-family: 'Segoe UI', 'Calibri', sans-serif;
         font-size: 0.9rem;
         outline: none;
         transition: all 0.3s;
@@ -169,7 +254,7 @@
         border: none;
         border-radius: 11px;
         color: #fff;
-        font-family: 'Inter', sans-serif;
+        font-family: 'Segoe UI', 'Calibri', sans-serif;
         font-size: 0.9rem;
         font-weight: 600;
         letter-spacing: 0.03em;
@@ -261,7 +346,7 @@
         border: 1.5px solid rgba(129,140,248,0.22);
         border-radius: 11px;
         color: #c4b5fd;
-        font-family: 'Inter', sans-serif;
+        font-family: 'Segoe UI', 'Calibri', sans-serif;
         font-size: 0.85rem;
         font-weight: 500;
         cursor: pointer;
@@ -328,6 +413,17 @@
         display: none;
     }
 
+    /* ── FOOTER ─────────────────────────────────────────────────── */
+    .footer {
+        text-align: center;
+        margin-top: 3rem;
+        padding: 1rem 0;
+        font-size: 0.7rem;
+        color: rgba(255,255,255,0.18);
+        font-family: 'Segoe UI', sans-serif;
+        letter-spacing: 0.03em;
+    }
+
     /* ── ANIMATIONS ─────────────────────────────────────────────── */
     @keyframes fadeDown {
         from { opacity: 0; transform: translateY(-18px); }
@@ -338,6 +434,11 @@
         to   { opacity: 1; transform: translateY(0); }
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    @keyframes floatSig {
+        0%, 100% { transform: translateX(-50%) translateY(0); }
+        50%      { transform: translateX(-50%) translateY(-6px); }
+    }
 
     ::-webkit-scrollbar { width: 5px; }
     ::-webkit-scrollbar-track { background: transparent; }
@@ -354,20 +455,51 @@
 
 <canvas id="waveCanvas"></canvas>
 
+<!-- ══════════════════════════════════════════════════════════════
+     SIGNATURE WATERMARK — transparent handwritten SVG in background space
+     Rendered as an SVG path to look like a real pen signature
+     ══════════════════════════════════════════════════════════════ -->
+<div class="sig-watermark" id="sigWatermark">
+    <svg viewBox="0 0 600 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+            <linearGradient id="sigGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%"   stop-color="#98fb98" stop-opacity="0.5"/>
+                <stop offset="50%"  stop-color="#4169e1" stop-opacity="0.4"/>
+                <stop offset="100%" stop-color="#6b3b5b" stop-opacity="0.5"/>
+            </linearGradient>
+        </defs>
+        <!-- Hand-drawn "by VIR@HITVIN" signature path -->
+        <text x="300" y="75"
+              font-family="'Ink Free', 'Segoe Script', 'Bradley Hand ITC', cursive"
+              font-size="52"
+              font-weight="400"
+              fill="url(#sigGrad)"
+              text-anchor="middle"
+              letter-spacing="3"
+              style="font-style: italic;">
+            by VIR@HITVIN
+        </text>
+        <!-- Underline flourish -->
+        <path d="M 80 88 Q 180 95 300 85 Q 420 75 520 88"
+              stroke="url(#sigGrad)"
+              stroke-width="1.5"
+              fill="none"
+              stroke-linecap="round"
+              opacity="0.6"/>
+        <!-- Decorative dot -->
+        <circle cx="540" cy="86" r="2.5" fill="url(#sigGrad)" opacity="0.5"/>
+    </svg>
+</div>
+
 <div class="page">
 
     <!-- Header -->
     <div class="header">
-        <div style="display: flex; align-items: baseline; justify-content: center;">
+        <div style="display: flex; justify-content: center;">
             <div class="logo">ADS</div>
-            <div class="text-wrapper" id="sigWrapper">
-                <div class="sig-header">by ViR@hitvin</div>
-            </div>
         </div>
-        <div class="text-wrapper" id="tagWrapper" style="display: flex; justify-content: center;">
-            <div class="tagline">
-                <span id="tagText"></span><span class="cursor"></span>
-            </div>
+        <div class="tagline-handwritten" id="taglineContainer">
+            <span id="tagText"></span><span class="cursor" id="tagCursor"></span>
         </div>
     </div>
 
@@ -389,7 +521,7 @@
 
             <div class="form-group">
                 <label class="lbl" for="sCourse">Program</label>
-                <input class="inp" type="text" id="sCourse" placeholder="e.g., M.Sc. Remote Sensing & GIS" required />
+                <input class="inp" type="text" id="sCourse" placeholder="e.g., M.Sc. Remote Sensing &amp; GIS" required />
                 <div class="field-err">Please enter your program</div>
             </div>
 
@@ -431,7 +563,9 @@
         </div>
     </div>
 
-    <!-- Signature Removed from bottom -->
+    <div class="footer">
+        ADS &mdash; Assignment Document System &middot; Built with ♥
+    </div>
 
 </div>
 
@@ -598,20 +732,6 @@
     const SHAPES = [];
     const shapeCols = [0x6366f1, 0x818cf8, 0xa78bfa, 0xc4b5fd, 0x38bdf8, 0x7c3aed];
 
-    function makeHexGeo(r) {
-        const pts = [];
-        for (let i = 0; i < 6; i++) {
-            const a = (Math.PI / 3) * i;
-            pts.push(new THREE.Vector2(Math.cos(a) * r, Math.sin(a) * r));
-        }
-        return new THREE.LatheGeometry([new THREE.Vector2(r, 0), new THREE.Vector2(r * 0.85, r * 0.15)], 6);
-    }
-
-    function makePentGeo(r) {
-        const geo = new THREE.CylinderGeometry(r, r, r * 0.08, 5);
-        return geo;
-    }
-
     for (let i = 0; i < 30; i++) {
         const isHex = Math.random() > 0.45;
         const r = Math.random() * 1.2 + 0.3;
@@ -730,173 +850,108 @@
 })();
 
 // ══════════════════════════════════════════════════════════════════════
-// CLAUDE-STYLE TYPEWRITER (WITH ERASING)
+// TAGLINE TYPEWRITER — Slow cloud-like typing with per-character color
+// Sequence: type each char slowly → hold 6s → fade all out → pause 3s → fresh start
+// Colors cycle through: Pale Green (#98fb98), Royal Blue (#4169e1), Cadbury Maroon (#6b3b5b)
 // ══════════════════════════════════════════════════════════════════════
-const tagTextEl = document.getElementById('tagText');
-const fullTagline = "Together, no one walks alone";
-let typeIndex = 0;
-let isDeleting = false;
+(function() {
+    const tagContainer = document.getElementById('tagText');
+    const tagCursor    = document.getElementById('tagCursor');
+    const tagline      = "Together, no one walks alone";
+    const COLORS       = ['#98fb98', '#4169e1', '#8e4585']; // Pale Green, Royal Blue, Cadbury Maroon
 
-function typeWriter() {
-    if (!isDeleting && typeIndex <= fullTagline.length) {
-        tagTextEl.innerText = fullTagline.substring(0, typeIndex);
-        typeIndex++;
-        setTimeout(typeWriter, 80 + Math.random() * 40);
-    } else if (isDeleting && typeIndex >= 0) {
-        tagTextEl.innerText = fullTagline.substring(0, typeIndex);
-        typeIndex--;
-        setTimeout(typeWriter, 40);
+    let phase = 'WAITING'; // WAITING → TYPING → HOLDING → FADING → PAUSING
+    let charIdx = 0;
+    let charSpans = [];
+
+    function getColor(idx) {
+        return COLORS[idx % COLORS.length];
     }
-    
-    if (typeIndex > fullTagline.length) {
-        isDeleting = true;
-        setTimeout(typeWriter, 3000); // pause when fully typed
-    } else if (typeIndex < 0) {
-        isDeleting = false;
-        typeIndex = 0;
-        setTimeout(typeWriter, 1000); // pause before restart
+
+    function clearAll() {
+        tagContainer.innerHTML = '';
+        charSpans = [];
+        charIdx = 0;
     }
-}
-setTimeout(typeWriter, 500);
 
-// ══════════════════════════════════════════════════════════════════════
-// COMET SIGNATURE PARTICLE SYSTEM
-// ══════════════════════════════════════════════════════════════════════
-const cCanvas = document.getElementById('cometCanvas');
-const cCtx = cCanvas.getContext('2d');
+    function tick() {
+        switch (phase) {
+            case 'WAITING':
+                clearAll();
+                phase = 'TYPING';
+                tagCursor.style.display = 'inline-block';
+                setTimeout(tick, 600);
+                break;
 
-function resizeCometCanvas() {
-    cCanvas.width = window.innerWidth;
-    cCanvas.height = window.innerHeight;
-}
-window.addEventListener('resize', resizeCometCanvas);
-resizeCometCanvas();
+            case 'TYPING':
+                if (charIdx < tagline.length) {
+                    const span = document.createElement('span');
+                    span.className = 'tchar';
+                    span.textContent = tagline[charIdx];
+                    span.style.color = getColor(charIdx);
+                    tagContainer.appendChild(span);
+                    charSpans.push(span);
 
-let comets = [];
-let cometState = 'FORMING';
+                    // Trigger reflow then make visible for smooth transition
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            span.classList.add('visible');
+                        });
+                    });
 
-function getCometColor(x, width) {
-    const ratio = x / width;
-    if (ratio < 0.5) {
-        // Opal Green to Royal Blue
-        const r = Math.floor(122 + (65 - 122) * (ratio / 0.5));
-        const g = Math.floor(197 + (105 - 197) * (ratio / 0.5));
-        const b = Math.floor(180 + (225 - 180) * (ratio / 0.5));
-        return `rgba(${r}, ${g}, ${b}, 0.7)`;
-    } else {
-        // Royal Blue to Cadbury Maroon
-        const r = Math.floor(65 + (107 - 65) * ((ratio - 0.5) / 0.5));
-        const g = Math.floor(105 + (59 - 105) * ((ratio - 0.5) / 0.5));
-        const b = Math.floor(225 + (91 - 225) * ((ratio - 0.5) / 0.5));
-        return `rgba(${r}, ${g}, ${b}, 0.7)`;
-    }
-}
+                    charIdx++;
 
-function initComets() {
-    const tempCanvas = document.createElement('canvas');
-    const tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true });
-    tempCanvas.width = cCanvas.width;
-    tempCanvas.height = cCanvas.height;
-    
-    const fontSize = Math.max(30, window.innerWidth * 0.05);
-    tempCtx.font = `600 ${fontSize}px 'Dancing Script'`;
-    tempCtx.textAlign = "center";
-    tempCtx.textBaseline = "middle";
-    tempCtx.fillStyle = "white";
-    
-    // Position signature in the space below the main card
-    tempCtx.fillText("by ViR@hitvin", tempCanvas.width / 2, tempCanvas.height * 0.9); 
-    
-    const imgData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
-    const data = imgData.data;
-    
-    comets = [];
-    const step = window.innerWidth < 768 ? 5 : 4; 
-    
-    for (let y = 0; y < tempCanvas.height; y += step) {
-        for (let x = 0; x < tempCanvas.width; x += step) {
-            const i = (y * tempCanvas.width + x) * 4;
-            if (data[i+3] > 100) { 
-                const startAngle = Math.random() * Math.PI * 2;
-                const dist = Math.random() * Math.max(tempCanvas.width, tempCanvas.height);
-                comets.push({
-                    ox: x, oy: y,
-                    tx: x, ty: y,
-                    x: x + Math.cos(startAngle) * dist,
-                    y: y + Math.sin(startAngle) * dist,
-                    vx: 0, vy: 0,
-                    history: [],
-                    color: getCometColor(x, tempCanvas.width)
+                    // Slow natural typing: 220–380ms per char (much slower than before)
+                    const delay = tagline[charIdx - 1] === ' '
+                        ? 300 + Math.random() * 150   // longer pause at spaces
+                        : 220 + Math.random() * 160;  // normal char typing
+
+                    setTimeout(tick, delay);
+                } else {
+                    phase = 'HOLDING';
+                    tagCursor.style.display = 'inline-block';
+                    // Hold the fully typed tagline for 6 seconds
+                    setTimeout(tick, 6000);
+                }
+                break;
+
+            case 'HOLDING':
+                phase = 'FADING';
+                tagCursor.style.display = 'none';
+                // Fade all characters out with stagger
+                charSpans.forEach((span, i) => {
+                    setTimeout(() => {
+                        span.classList.remove('visible');
+                        span.classList.add('fading');
+                    }, i * 30);
                 });
-            }
+                // Wait for fade animation to complete + a beat
+                setTimeout(tick, charSpans.length * 30 + 800);
+                break;
+
+            case 'FADING':
+                phase = 'PAUSING';
+                clearAll();
+                tagCursor.style.display = 'none';
+                // Blank pause before restarting: 3 seconds
+                setTimeout(tick, 3000);
+                break;
+
+            case 'PAUSING':
+                phase = 'WAITING';
+                tick();
+                break;
         }
     }
-}
 
-function animateComets() {
-    cCtx.clearRect(0, 0, cCanvas.width, cCanvas.height);
-    cCtx.lineWidth = 1.2;
-    
-    comets.forEach(c => {
-        const dx = c.tx - c.x;
-        const dy = c.ty - c.y;
-        
-        c.vx += dx * 0.0006;
-        c.vy += dy * 0.0006;
-        c.vx *= 0.92;
-        c.vy *= 0.92;
-        
-        c.history.push({x: c.x, y: c.y});
-        if (c.history.length > 12) c.history.shift(); 
-        
-        c.x += c.vx;
-        c.y += c.vy;
-        
-        if (c.history.length > 1) {
-            cCtx.strokeStyle = c.color;
-            cCtx.beginPath();
-            cCtx.moveTo(c.history[0].x, c.history[0].y);
-            for (let i = 1; i < c.history.length; i++) {
-                cCtx.lineTo(c.history[i].x, c.history[i].y);
-            }
-            cCtx.lineTo(c.x, c.y);
-            cCtx.stroke();
-        }
-        
-        cCtx.fillStyle = "#fff";
-        cCtx.fillRect(c.x - 0.5, c.y - 0.5, 1, 1);
-    });
-    
-    requestAnimationFrame(animateComets);
-}
-
-document.fonts.ready.then(() => {
-    initComets();
-    animateComets();
-});
-
-setInterval(() => {
-    if (cometState === 'FORMING') {
-        cometState = 'DISPERSING';
-        comets.forEach(c => {
-            const angle = Math.random() * Math.PI * 2;
-            const dist = Math.random() * window.innerWidth + 500;
-            c.tx = c.ox + Math.cos(angle) * dist;
-            c.ty = c.oy + Math.sin(angle) * dist;
-        });
-    } else {
-        cometState = 'FORMING';
-        comets.forEach(c => {
-            c.tx = c.ox;
-            c.ty = c.oy;
-        });
-    }
-}, 8000);
+    // Start after a short delay for page load
+    setTimeout(tick, 1500);
+})();
 
 // ══════════════════════════════════════════════════════════════════════
-// LOCAL STORAGE
+// LOCAL STORAGE — persist user credentials
 // ══════════════════════════════════════════════════════════════════════
-const SK = 'ads_v3';
+const SK = 'ads_v4';
 const nI = document.getElementById('sName');
 const pI = document.getElementById('sPid');
 const cI = document.getElementById('sCourse');
@@ -917,7 +972,7 @@ function load() {
 load();
 
 // ══════════════════════════════════════════════════════════════════════
-// FORM SUBMIT
+// FORM SUBMIT — Generate document with proper user credentials
 // ══════════════════════════════════════════════════════════════════════
 const form    = document.getElementById('form');
 const btnGo   = document.getElementById('btnGo');
@@ -961,37 +1016,44 @@ form.addEventListener('submit', async e => {
     result.scrollIntoView({ behavior: 'smooth' });
 
     try {
-        const res  = await fetch('/generate', {
+        const payload = {
+            studentName:   nI.value.trim(),
+            studentPid:    pI.value.trim(),
+            studentCourse: cI.value.trim()
+        };
+
+        const res = await fetch('/generate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                studentName:   nI.value.trim(),
-                studentPid:    pI.value.trim(),
-                studentCourse: cI.value.trim()
-            })
+            body: JSON.stringify(payload)
         });
+
         const data = await res.json();
 
-        if (!data.success) { showErr(data.error || 'Generation failed.'); return; }
+        if (!res.ok || !data.success) {
+            showErr(data.error || 'Generation failed. Please check the server.');
+            return;
+        }
 
+        // Show success message with user credentials
         dName.textContent = data.studentName;
         dDet.textContent  = `PID: ${data.studentPid}  ·  ${data.studentCourse}`;
         msgOk.classList.add('show');
 
-        if (data.pdfReady) {
+        if (data.pdfReady && data.pdfUrl) {
             dlPdf.href             = data.pdfUrl;
             dlPdf.style.display    = 'flex';
             pdfFrame.src           = data.previewUrl;
             pdfFrame.style.display = 'block';
         } else {
             dlPdf.style.display = 'none';
-            showErr('PDF could not be generated — check server logs.');
+            showErr('PDF could not be generated — LibreOffice may not be available. Check server logs.');
         }
 
         genLoad.classList.remove('show');
 
     } catch (err) {
-        showErr('Network error. Please check the server.');
+        showErr('Network error. Please check the server is running.');
     } finally {
         btnGo.classList.remove('ld');
         btnGo.disabled = false;

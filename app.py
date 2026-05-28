@@ -62,12 +62,16 @@ def find_template():
     # If template is specified in settings, use it
     if template_name:
         path = os.path.join(DOCUMENTS_DIR, template_name)
-        if os.path.exists(path):
+        if os.path.exists(path) and not template_name.startswith('~$'):
             return path
+        else:
+            # Template in settings no longer exists or is a lock file, reset it
+            print(f"[WARN] Template '{template_name}' not found or is lock file, searching for alternatives...", file=sys.stderr)
+            settings['template'] = ''
 
     # Otherwise, look for any .docx file in the documents/ folder
     docx_files = [f for f in os.listdir(DOCUMENTS_DIR)
-                  if f.lower().endswith('.docx') and f != 'settings.json']
+                  if f.lower().endswith('.docx') and not f.startswith('~$') and f != 'settings.json']
     if docx_files:
         docx_files.sort(key=lambda f: os.path.getmtime(os.path.join(DOCUMENTS_DIR, f)), reverse=True)
         chosen = docx_files[0]
@@ -220,35 +224,46 @@ def modify_docx_template(student_name, student_pid, student_course, output_path=
 def convert_docx_to_pdf(docx_path, output_dir):
     """
     Convert DOCX to PDF using LibreOffice headless.
+    Tries 'libreoffice' first, then 'soffice' as fallback.
     This preserves ALL original formatting exactly.
     """
-    try:
-        result = subprocess.run(
-            [
-                'libreoffice', '--headless', '--convert-to', 'pdf',
-                '--outdir', output_dir, docx_path
-            ],
-            capture_output=True, text=True, timeout=120
-        )
-        if result.returncode != 0:
-            print(f"[PDF] LibreOffice error: {result.stderr}", file=sys.stderr)
-            return None
+    # Try both common binary names for LibreOffice
+    for binary in ['libreoffice', 'soffice']:
+        try:
+            print(f"[PDF] Trying {binary} to convert {os.path.basename(docx_path)}...", file=sys.stderr)
+            result = subprocess.run(
+                [
+                    binary, '--headless', '--convert-to', 'pdf',
+                    '--outdir', output_dir, docx_path
+                ],
+                capture_output=True, text=True, timeout=120
+            )
+            if result.returncode != 0:
+                print(f"[PDF] {binary} error (code {result.returncode}): {result.stderr}", file=sys.stderr)
+                continue
 
-        # LibreOffice outputs the PDF with the same base name
-        base_name = os.path.splitext(os.path.basename(docx_path))[0]
-        pdf_path = os.path.join(output_dir, base_name + '.pdf')
-        if os.path.exists(pdf_path) and os.path.getsize(pdf_path) > 0:
-            return pdf_path
-        return None
-    except FileNotFoundError:
-        print("[PDF] LibreOffice not found. Install it for PDF generation.", file=sys.stderr)
-        return None
-    except subprocess.TimeoutExpired:
-        print("[PDF] LibreOffice conversion timed out.", file=sys.stderr)
-        return None
-    except Exception as e:
-        print(f"[PDF] Conversion error: {e}", file=sys.stderr)
-        return None
+            # LibreOffice outputs the PDF with the same base name
+            base_name = os.path.splitext(os.path.basename(docx_path))[0]
+            pdf_path = os.path.join(output_dir, base_name + '.pdf')
+            if os.path.exists(pdf_path) and os.path.getsize(pdf_path) > 0:
+                print(f"[PDF] Success: {pdf_path} ({os.path.getsize(pdf_path)} bytes)", file=sys.stderr)
+                return pdf_path
+            else:
+                print(f"[PDF] {binary} ran but PDF file not found or empty at {pdf_path}", file=sys.stderr)
+                continue
+
+        except FileNotFoundError:
+            print(f"[PDF] {binary} not found, trying next...", file=sys.stderr)
+            continue
+        except subprocess.TimeoutExpired:
+            print(f"[PDF] {binary} conversion timed out.", file=sys.stderr)
+            continue
+        except Exception as e:
+            print(f"[PDF] {binary} error: {e}", file=sys.stderr)
+            continue
+
+    print("[PDF] All conversion methods failed. Neither libreoffice nor soffice available.", file=sys.stderr)
+    return None
 
 
 # ─── Routes ──────────────────────────────────────────────────────────────────
@@ -278,15 +293,41 @@ def _cleanup_old_files():
                 pass
 
 
+@app.route('/health')
+def health():
+    """Health check endpoint for Docker / Render."""
+    tmpl = find_template()
+    return jsonify({
+        'status': 'ok',
+        'template_found': tmpl is not None,
+        'template_name': os.path.basename(tmpl) if tmpl else None
+    })
+
+
+@app.route('/template-status')
+def template_status():
+    """Check template and settings status."""
+    settings = load_settings()
+    tmpl = find_template()
+    return jsonify({
+        'settings': settings,
+        'template_path': tmpl,
+        'template_exists': tmpl is not None and os.path.exists(tmpl) if tmpl else False
+    })
+
+
 @app.route('/generate', methods=['POST'])
 def generate_assignment():
     data = request.get_json()
+    if not data:
+        return jsonify({'error': 'No data received. Please fill in all fields.', 'success': False}), 400
+
     student_name = data.get('studentName', '').strip()
     student_pid = data.get('studentPid', '').strip()
     student_course = data.get('studentCourse', '').strip()
 
     if not student_name or not student_pid or not student_course:
-        return jsonify({'error': 'Please provide your name, PID, and program.'}), 400
+        return jsonify({'error': 'Please provide your name, PID, and program.', 'success': False}), 400
 
     file_id = uuid.uuid4().hex[:12]
     docx_path = os.path.join(OUTPUT_DIR, f'assignment_{file_id}.docx')
@@ -294,13 +335,38 @@ def generate_assignment():
     try:
         tmpl = find_template()
         if not tmpl:
-            return jsonify({'error': 'No DOCX template found. Place a .docx file in the "documents/" folder.'}), 400
+            return jsonify({
+                'error': 'No DOCX template found. Place a .docx file in the "documents/" folder.',
+                'success': False
+            }), 400
+
+        if not os.path.exists(tmpl):
+            return jsonify({
+                'error': f'Template file not found: {os.path.basename(tmpl)}',
+                'success': False
+            }), 400
+
+        print(f"[GEN] Generating for: {student_name} | {student_pid} | {student_course}", file=sys.stderr)
+        print(f"[GEN] Using template: {tmpl}", file=sys.stderr)
 
         modify_docx_template(student_name, student_pid, student_course, docx_path)
+
+        if not os.path.exists(docx_path) or os.path.getsize(docx_path) == 0:
+            return jsonify({
+                'error': 'DOCX generation failed — output file is empty.',
+                'success': False
+            }), 500
+
+        print(f"[GEN] DOCX created: {docx_path} ({os.path.getsize(docx_path)} bytes)", file=sys.stderr)
 
         # Convert DOCX to PDF using LibreOffice (preserves all formatting)
         pdf_path = convert_docx_to_pdf(docx_path, OUTPUT_DIR)
         pdf_ready = pdf_path is not None
+
+        if pdf_ready:
+            print(f"[GEN] PDF ready: {pdf_path} ({os.path.getsize(pdf_path)} bytes)", file=sys.stderr)
+        else:
+            print(f"[GEN] PDF conversion failed — DOCX was created but LibreOffice conversion failed.", file=sys.stderr)
 
         return jsonify({
             'success': True,
@@ -312,8 +378,14 @@ def generate_assignment():
             'studentCourse': student_course
         })
 
+    except FileNotFoundError as e:
+        print(f"[ERR] File not found: {e}", file=sys.stderr)
+        return jsonify({'error': f'Template not found: {str(e)}', 'success': False}), 400
     except Exception as e:
-        return jsonify({'error': f'An error occurred: {str(e)}'}), 500
+        print(f"[ERR] Generation failed: {e}", file=sys.stderr)
+        import traceback
+        traceback.print_exc(file=sys.stderr)
+        return jsonify({'error': f'An error occurred: {str(e)}', 'success': False}), 500
 
 
 @app.route('/preview-pdf/<file_id>')
